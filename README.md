@@ -2,4 +2,4 @@
 
 Site com as mensagens padronizadas de WeGen, SmartBen e WattWise: https://danielamotaxp-code.github.io/central-atendimento/
 
-O conteúdo fica **criptografado** em `data/conteudo.json` e só abre com usuário e senha. O texto aberto fica no repositório privado `central-atendimento-dados`. **Nunca** coloque mensagens em texto aberto neste repositório público.
+O `index.html` é gerado criptografado pelo gerador de acessos do repositório privado `central-atendimento-dados` e só abre com login e senha. **Nunca** coloque mensagens em texto aberto neste repositório público.
