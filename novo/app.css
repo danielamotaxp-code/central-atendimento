@@ -1,0 +1,77 @@
+/* Central de Atendimento — layout próprio sobre o visual comum (kit/plataforma.css) */
+:root { --mark: #fff1c2; --mark-fg: #5a4300; }
+:root[data-tema="escuro"] { --mark: #4a3c10; --mark-fg: #ffe7a0; }
+@media (prefers-color-scheme: dark) { :root:not([data-tema="claro"]) { --mark: #4a3c10; --mark-fg: #ffe7a0; } }
+
+.ca-barra { position: sticky; top: 59px; z-index: 15; background: var(--cartao); border-bottom: 1px solid var(--borda); padding: 10px max(20px, calc((100% - 1180px) / 2)); display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; }
+.ca-busca { flex: 1 1 240px; min-width: 0; }
+.ca-busca input { width: 100%; border: 1px solid var(--borda); background: var(--fundo); border-radius: 8px; padding: 8px 12px; }
+.ca-saud { display: flex; align-items: center; gap: 6px; font-size: .85rem; font-weight: 600; color: var(--texto-2); }
+.ca-saud select { border: 1px solid var(--borda); background: var(--fundo); border-radius: 8px; padding: 6px 8px; }
+
+.ca-wrap { max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 28px; padding: 20px max(20px, env(safe-area-inset-right, 0px)) 60px max(20px, env(safe-area-inset-left, 0px)); }
+.ca-nav { position: sticky; top: 130px; align-self: start; display: flex; flex-direction: column; gap: 2px; }
+.ca-nav a { display: flex; gap: 10px; align-items: baseline; text-decoration: none; color: var(--texto); padding: 7px 10px; border-radius: 8px; }
+.ca-nav a:hover { background: var(--afundado); }
+.ca-nav .n { font-family: var(--f-mono); font-size: .75rem; color: var(--cor-forte); }
+.ca-nav .c { margin-left: auto; font-size: .8rem; color: var(--texto-3); font-variant-numeric: tabular-nums; }
+.ca-navlabel { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--texto-3); font-weight: 700; padding: 0 10px 6px; }
+
+.ca-main { min-width: 0; display: flex; flex-direction: column; gap: 28px; }
+.ca-caixa { background: var(--cartao); border: 1px solid var(--borda); border-radius: var(--raio); padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+.ca-caixa-topo { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ca-caixa-topo h2 { font-size: 1rem; margin: 0; }
+.ca-campos { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px 12px; }
+.ca-campos label { display: flex; flex-direction: column; font-size: .8rem; color: var(--texto-2); font-weight: 600; gap: 2px; }
+.ca-campos input { border: 1px solid var(--borda); background: var(--fundo); border-radius: 6px; padding: 6px 9px; font-size: .95rem; }
+.ca-legenda { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: .82rem; color: var(--texto-3); }
+.ca-legenda code { font-family: var(--f-mono); font-size: .78rem; background: var(--afundado); padding: 1px 5px; border-radius: 4px; }
+
+.ca-etapa h2, .ca-top h2 { font-size: 1.12rem; margin: 0 0 10px; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.ca-etapa h2 .n { font-family: var(--f-mono); font-size: .8rem; color: var(--cor-forte); }
+.ca-etapa h2 .d { font-size: .85rem; font-weight: 400; color: var(--texto-3); }
+.ca-lista { display: flex; flex-direction: column; gap: 10px; }
+.ca-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.ca-chip { border: 1px solid var(--borda); background: var(--cartao); border-radius: 999px; padding: 6px 12px; font-weight: 600; font-size: .9rem; display: flex; gap: 8px; align-items: center; }
+.ca-chip .k { font-family: var(--f-mono); font-size: .75rem; color: var(--cor-forte); }
+
+.ca-card { background: var(--cartao); border: 1px solid var(--borda); border-radius: var(--raio); overflow: hidden; transition: border-color .3s; }
+.ca-card.flash { border-color: var(--cor); }
+.ca-card-topo { display: flex; gap: 10px; align-items: center; padding: 10px 12px 10px 16px; flex-wrap: wrap; }
+.ca-card-topo .t { font-weight: 700; flex: 1 1 220px; min-width: 0; background: none; border: 0; text-align: left; padding: 0; }
+.ca-tag { font-size: .72rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; border-radius: 4px; padding: 2px 6px; background: var(--afundado); color: var(--texto-2); }
+.ca-tag.so { background: var(--cor-suave); color: var(--cor-forte); }
+.ca-usos { font-size: .8rem; color: var(--texto-3); font-variant-numeric: tabular-nums; }
+.ca-corpo { border-top: 1px solid var(--borda); padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
+.ca-msg { white-space: pre-wrap; overflow-wrap: anywhere; background: var(--fundo); border-radius: 8px; padding: 12px 14px; font-size: .95rem; max-width: 72ch; }
+.ca-msg .ph { background: var(--mark); color: var(--mark-fg); border-radius: 3px; padding: 0 3px; font-weight: 600; }
+.ca-msg .ok { border-bottom: 2px solid var(--cor); }
+.ca-nota { font-size: .85rem; color: var(--texto-2); border-left: 3px solid var(--borda); padding-left: 10px; }
+.ca-acoes { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.ca-copiada { color: var(--ok); font-weight: 600; font-size: .9rem; }
+.ca-falta { color: var(--erro); font-size: .85rem; }
+.ca-chk { display: inline-flex; align-items: center; gap: 6px; font-size: .9rem; font-weight: 600; cursor: pointer; user-select: none; padding: 4px 8px; border: 1px solid var(--borda); border-radius: 8px; }
+.ca-chk input { width: 18px; height: 18px; accent-color: var(--cor); }
+.ca-vazio { border: 1px dashed var(--borda); border-radius: var(--raio); padding: 14px 16px; color: var(--texto-3); font-size: .9rem; }
+.ca-rodape { font-size: .85rem; color: var(--texto-3); }
+
+.ca-editor { background: var(--cartao); border: 2px solid var(--cor); border-radius: var(--raio); padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.ca-editor h2 { font-size: 1.1rem; margin: 0; }
+.ca-editor .linha { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
+.ca-editor textarea { min-height: 220px; }
+.ca-editor .marcas { display: flex; gap: 14px; flex-wrap: wrap; padding-top: 4px; }
+.ca-editor .marcas label { display: flex; align-items: center; gap: 6px; font-size: .9rem; color: var(--texto); font-weight: 600; }
+.ca-rot { font-size: .78rem; font-weight: 700; color: var(--texto-3); text-transform: uppercase; letter-spacing: .06em; }
+
+/* administração: etapas e empresas */
+.ca-adm-item { border: 1px solid var(--borda); border-radius: 8px; padding: 10px; background: var(--fundo); display: grid; gap: 8px; }
+.ca-adm-item .p-linha label { font-size: .85rem; display: flex; gap: 4px; align-items: center; }
+
+@media (max-width: 800px) {
+  .ca-barra { position: static; }
+  .ca-wrap { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .ca-nav { position: static; flex-direction: row; overflow-x: auto; gap: 6px; padding-bottom: 4px; }
+  .ca-nav a { white-space: nowrap; background: var(--cartao); border: 1px solid var(--borda); }
+  .ca-nav .c, .ca-navlabel { display: none; }
+}
+#ca-migrar:empty, #ca-editor:empty { display: none; }
