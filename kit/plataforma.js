@@ -26,6 +26,7 @@
   var SENHA_PADRAO = '102030';
   var API = 'https://api.github.com';
   var enc = new TextEncoder(), dec = new TextDecoder();
+  var CLIENTE_GOOGLE = '164834594868-vaihaied48tm370kpkp6km6fagjcasog.apps.googleusercontent.com';
 
   /* ======================= utilidades ======================= */
   function $(s, r) { return (r || document).querySelector(s); }
@@ -60,10 +61,12 @@
   async function decifrar(chave, obj) { return new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(obj.iv) }, chave, unb64(obj.dados))); }
 
   /** Tranca a chave-mestra com a senha de um usuário. */
-  async function entradaUsuario(nome, papel, senha, mestra, padrao) {
+  async function entradaUsuario(nome, papel, senha, mestra, padrao, modulos) {
     var salt = aleatorio(16);
     var c = await cifrar(await chaveDaSenha(senha, salt), mestra);
-    return { nome: nome, papel: papel, salt: b64(salt), iv: c.iv, chave: c.dados, senhaPadrao: !!padrao };
+    var e = { nome: nome, papel: papel, salt: b64(salt), iv: c.iv, chave: c.dados, senhaPadrao: !!padrao };
+    if (Array.isArray(modulos)) e.modulos = modulos;
+    return e;
   }
   async function abrirEntrada(u, senha) {
     return decifrar(await chaveDaSenha(senha, unb64(u.salt)), { iv: u.iv, dados: u.chave });
@@ -154,7 +157,7 @@
       await carregar();
       return new Promise(function (ok, falha) {
         var cli = global.google.accounts.oauth2.initTokenClient({
-          client_id: clientId, scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.readonly',
+          client_id: clientId, scope: 'https://www.googleapis.com/auth/spreadsheets',
           callback: function (resp) {
             if (resp.error) return falha(new Error('Login do Google não concluído.'));
             tokenAtual = resp.access_token; validoAte = Date.now() + (resp.expires_in - 60) * 1000; ok(tokenAtual);
@@ -179,7 +182,9 @@
       ler: function (id, intervalo) { return sheets('GET', id + '/values/' + encodeURIComponent(intervalo) + '?valueRenderOption=FORMATTED_VALUE').then(function (j) { return j.values || []; }); },
       gravar: function (id, intervalo, valores) { return sheets('PUT', id + '/values/' + encodeURIComponent(intervalo) + '?valueInputOption=USER_ENTERED', { values: valores }); },
       acrescentar: function (id, intervalo, valores) { return sheets('POST', id + '/values/' + encodeURIComponent(intervalo) + ':append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS', { values: valores }); },
-      lote: function (id, pedidos) { return sheets('POST', id + ':batchUpdate', { requests: pedidos }); }
+      lote: function (id, pedidos) { return sheets('POST', id + ':batchUpdate', { requests: pedidos }); },
+      /** Leitura livre da API (ex.: 'includeGridData=true&ranges=...&fields=...'). */
+      obter: function (id, consulta) { return sheets('GET', id + '?' + consulta); }
     };
   }
 
@@ -190,13 +195,17 @@
     var guarda = Guarda(cfg.id);
     var cofre = null, shaCofre = null, sessao = null, prefs = {}, shaPrefs = null, abaAtual = null;
     var raiz = document.getElementById('plataforma') || document.body;
+    var PAI = null; try { if (window.parent !== window && window.parent.PlataformaAtual) PAI = window.parent.PlataformaAtual; } catch (e) { /* outro endereço */ }
+    var modoModulo = !!cfg.moduloId, modoPortal = !!(cfg.modulos && cfg.modulos.length);
+    if (modoModulo && !PAI) { document.documentElement.style.visibility = 'hidden'; location.replace((cfg.portal || '/central-atendimento/') + '#' + cfg.moduloId); return {}; }
+    if (modoModulo) document.documentElement.classList.add('p-modulo');
     document.documentElement.style.setProperty('--cor', cfg.cor);
     if (cfg.corTexto) document.documentElement.style.setProperty('--cor-texto', cfg.corTexto);
-    aplicarTema(guarda.ler('tema', 'auto'));
-    document.title = cfg.nome;
+    aplicarTema(modoModulo ? PAI.tema() : guarda.ler('tema', 'auto'));
+    if (!modoModulo) document.title = cfg.nome;
 
     var gh = GitHub(function () { return sessao && sessao.token; }, function () { faixa('erro', 'O acesso ao GitHub foi recusado (token vencido ou sem permissão). ' + (ehAdmin() ? 'Troque o token em <b>Administração</b>.' : 'Avise a administradora.'), 'token'); });
-    var google = cfg.google ? Google(cfg.google.clientId) : null;
+    var google = cfg.google === false ? null : Google((cfg.google && cfg.google.clientId) || CLIENTE_GOOGLE);
 
     function ehAdmin() { return !!(sessao && sessao.papel === 'admin'); }
     function aplicarTema(t) { if (t === 'claro' || t === 'escuro') document.documentElement.dataset.tema = t; else delete document.documentElement.dataset.tema; }
@@ -204,15 +213,19 @@
     /* ---------- moldura ---------- */
     function marcaHTML(sub) { return '<div class="p-marca"><span class="p-marca-logo" aria-hidden="true">' + esc(cfg.letra) + '</span><div><strong>' + esc(cfg.nome) + '</strong><small>' + esc(sub || cfg.subtitulo || '') + '</small></div></div>'; }
     raiz.innerHTML =
-      '<section class="p-login" id="p-tela-login" hidden><form class="p-login-card" id="p-form-login" autocomplete="on">' + marcaHTML() +
+      '<section class="p-login" id="p-tela-login" hidden>' + (cfg.marcasLogin ? '<div class="p-login-marcas">' + cfg.marcasLogin.map(function (k) { return banner(k, { compacto: true }); }).join('') + '</div>' : '') + '<form class="p-login-card" id="p-form-login" autocomplete="on">' + marcaHTML() +
         '<label class="p-campo">Usuário<select id="p-login-usuario" required></select></label>' +
         '<label class="p-campo">Senha<input id="p-login-senha" type="password" required autocomplete="current-password"></label>' +
         '<label class="p-campo p-check"><input type="checkbox" id="p-login-lembrar"> Manter conectado neste computador</label>' +
         '<button class="btn btn-primario" type="submit" id="p-login-btn">Entrar</button><p class="p-erro" id="p-login-erro" role="alert"></p></form></section>' +
       '<section class="p-login" id="p-tela-config" hidden></section>' +
+      (modoPortal ? '<div id="p-tela-app" class="p-portal" hidden><aside class="p-lateral" id="p-lateral"><div class="p-lateral-topo">' + marcaHTML() + '</div><nav class="p-menu" id="p-menu" aria-label="Páginas"></nav>' +
+        '<div class="p-lateral-pe"><span class="p-nome" id="p-nome"></span><button class="btn-link" id="p-btn-conta">Minha conta</button><button class="btn-link" id="p-btn-admin" hidden>Administração</button><button class="btn-link" id="p-btn-sair">Sair</button></div></aside>' +
+        '<div class="p-veu-menu" id="p-veu-menu" hidden></div><main class="p-principal"><header class="p-mod-topo" id="p-mod-topo"><button class="btn btn-peq p-menu-btn" id="p-menu-btn" type="button" aria-label="Abrir menu">☰</button><div class="p-mod-titulo" id="p-mod-titulo"></div><div class="p-mod-acoes" id="p-mod-acoes"></div></header>' +
+        '<nav class="p-abas" id="p-abas" hidden></nav><div class="p-faixas" id="p-faixas"></div><div id="p-conteudo" class="p-portal-conteudo"></div></main></div>' :
       '<div id="p-tela-app" hidden><header class="p-topo">' + marcaHTML() +
         '<div class="p-usuario"><span class="p-nome" id="p-nome"></span><button class="btn-link" id="p-btn-conta">Minha conta</button><button class="btn-link" id="p-btn-admin" hidden>Administração</button><button class="btn-link" id="p-btn-sair">Sair</button></div></header>' +
-        '<nav class="p-abas" id="p-abas" role="tablist" hidden></nav><div class="p-faixas" id="p-faixas"></div><div id="p-conteudo"></div></div>' +
+        '<nav class="p-abas" id="p-abas" role="tablist" hidden></nav><div class="p-faixas" id="p-faixas"></div><div id="p-conteudo"></div></div>') +
       '<div class="p-veu" id="p-veu" hidden></div><aside class="p-gaveta" id="p-gaveta" hidden aria-modal="true" role="dialog"><div class="p-gaveta-topo"><h2 id="p-gaveta-titulo"></h2><button class="btn btn-peq" id="p-gaveta-fechar">Fechar</button></div><div class="p-gaveta-corpo" id="p-gaveta-corpo"></div></aside>' +
       '<div class="p-toast" id="p-toast" hidden role="status"></div>';
 
@@ -285,7 +298,10 @@
     });
 
     function sair() {
+      if (modoModulo) return PAI.sair();
       guarda.apagar('sessao', 'sessao'); guarda.apagar('sessao', 'local'); sessao = null;
+      (cfg.limparAoSair || []).forEach(function (k) { try { sessionStorage.removeItem(k); localStorage.removeItem(k); } catch (e) { /* nada */ } });
+      if (modoPortal) { Object.keys(abertos).forEach(function (k) { abertos[k].remove(); delete abertos[k]; }); apis = {}; ouvintesTema = []; delete window.PlataformaAtual; var hi = $('#p-inicio'); if (hi) hi.remove(); }
       document.documentElement.style.setProperty('--cor', cfg.cor);
       fecharGaveta(); $('#p-conteudo').innerHTML = ''; $('#p-faixas').innerHTML = '';
       if (cfg.aoSair) try { cfg.aoSair(); } catch (e) { /* ignora */ }
@@ -328,11 +344,11 @@
       prefs = Object.assign({}, guarda.ler('prefs:' + sessao.login, {}));
       try { var r = await dados.lerComVersao(arqPrefs()); if (r.valor) prefs = r.valor; shaPrefs = r.sha; } catch (e) { /* usa a cópia do navegador */ }
       guarda.gravar('prefs:' + sessao.login, prefs);
-      if (prefs.tema) { guarda.gravar('tema', prefs.tema); aplicarTema(prefs.tema); }
+      if (prefs.tema && !modoModulo) { guarda.gravar('tema', prefs.tema); aplicarTema(prefs.tema); }
     }
     async function salvarPrefs(mudancas) {
       Object.assign(prefs, mudancas); guarda.gravar('prefs:' + sessao.login, prefs);
-      if (mudancas.tema) { guarda.gravar('tema', mudancas.tema); aplicarTema(mudancas.tema); }
+      if (mudancas.tema) { guarda.gravar('tema', mudancas.tema); aplicarTema(mudancas.tema); ouvintesTema.forEach(function (fn) { try { fn(mudancas.tema); } catch (e) { /* página fechada */ } }); }
       await dados.alterar(arqPrefs(), function (p) { return Object.assign(p || {}, mudancas); }, 'Preferências de ' + sessao.nome, {});
       if (cfg.aoMudarPreferencias) cfg.aoMudarPreferencias(prefs, ctx);
     }
@@ -348,17 +364,110 @@
       conteudo: function () { return $('#p-conteudo'); },
       aviso: aviso, faixa: faixa, esc: esc, guarda: guarda,
       abrirConta: function () { abrirConta(); }, abrirAdmin: function () { abrirAdmin(); },
-      irPara: function (aba) { escolherAba(aba); }
+      irPara: function (aba) { escolherAba(aba); },
+      /** Página dentro do portal: muda as cores do topo para a(s) empresa(s) em uso. */
+      marca: function (chaves) { if (modoModulo && PAI.marca) PAI.marca(cfg.moduloId, chaves); }
     };
 
     async function entrar() {
+      if (modoModulo) return entrarModulo();
       $('#p-nome').innerHTML = esc(sessao.nome) + (ehAdmin() ? ' <span class="p-papel">Admin</span>' : '');
       $('#p-btn-admin').hidden = !ehAdmin();
       mostrar('p-tela-app');
       await carregarPrefs();
       if (sessao.senhaPadrao) faixa('aviso', 'Você ainda está com a senha padrão. Para mais segurança, troque em <b>Minha conta</b>.', 'senha');
+      if (modoPortal) return montarPortal();
       montarAbas();
       if (cfg.aoEntrar) await cfg.aoEntrar(ctx);
+    }
+
+    /* ======== página dentro do portal ======== */
+    async function entrarModulo() {
+      mostrar('p-tela-app');
+      await carregarPrefs();
+      PAI.aoTema(function (t) { aplicarTema(t); });
+      PAI.registrarModulo(cfg.moduloId, {
+        preferencias: cfg.preferencias.length ? abrirConta : null,
+        configuracoes: (cfg.admin.length && ehAdmin()) ? abrirAdmin : null
+      });
+      montarAbas();
+      if (cfg.aoEntrar) await cfg.aoEntrar(ctx);
+    }
+
+    /* ======== portal: menu lateral com as páginas ======== */
+    var abertos = {}, apis = {}, ouvintesTema = [], atual = null;
+    function permitido(m) {
+      if (ehAdmin()) return true;
+      var u = cofre && cofre.usuarios[sessao.login];
+      var lista = u && u.modulos;
+      if (Array.isArray(lista)) return lista.indexOf(m.id) >= 0;
+      return (m.usuarios || []).map(slug).indexOf(sessao.login) >= 0;
+    }
+    function corDe(m) { var k = (m.marcas || [])[0]; return (MARCAS[k] && MARCAS[k].cor) || cfg.cor; }
+    function montarPortal() {
+      var visiveis = cfg.modulos.filter(permitido);
+      window.PlataformaAtual = {
+        get usuario() { return { login: sessao.login, nome: sessao.nome, papel: sessao.papel }; },
+        get token() { return sessao.token; },
+        google: google, marcas: MARCAS, banner: banner,
+        tema: function () { return prefs.tema || guarda.ler('tema', 'auto'); },
+        aoTema: function (fn) { ouvintesTema.push(fn); },
+        marca: function (id, chaves) { var m = cfg.modulos.find(function (x) { return x.id === id; }); if (m) { m.marcasAtuais = chaves; if (atual === id) topoModulo(m); } },
+        registrarModulo: function (id, api) { apis[id] = api; if (atual === id) acoesModulo(); },
+        aviso: aviso, sair: sair, irPara: function (id) { location.hash = id; }
+      };
+      $('#p-menu').innerHTML = '<a href="#inicio" data-mod="inicio" class="p-menu-item"><span class="p-ponto" style="background:var(--texto-3)"></span>Início</a>' +
+        visiveis.map(function (m) {
+          return '<a href="#' + esc(m.id) + '" data-mod="' + esc(m.id) + '" class="p-menu-item"><span class="p-ponto" style="background:' + (m.marcas.length > 1 ? 'linear-gradient(135deg,' + m.marcas.map(function (k) { return MARCAS[k].cor; }).join(',') + ')' : corDe(m)) + '"></span><span>' + esc(m.nome) + '<small>' + esc(m.marcas.map(function (k) { return MARCAS[k].nome; }).join(' · ')) + '</small></span></a>';
+        }).join('');
+      $('#p-menu-btn').onclick = function () { document.documentElement.classList.toggle('p-menu-aberto'); };
+      $('#p-veu-menu').onclick = function () { document.documentElement.classList.remove('p-menu-aberto'); };
+      window.addEventListener('hashchange', rota);
+      rota();
+    }
+    function rota() {
+      if (!sessao || !modoPortal) return;
+      document.documentElement.classList.remove('p-menu-aberto');
+      var id = location.hash.slice(1).split('/')[0] || 'inicio';
+      var m = cfg.modulos.find(function (x) { return x.id === id; });
+      if (m && !permitido(m)) { aviso('Você não tem acesso a ' + m.nome + '. Peça à administradora.', 'erro'); m = null; }
+      atual = m ? m.id : 'inicio';
+      document.querySelectorAll('.p-menu-item').forEach(function (a) { a.classList.toggle('ativo', a.dataset.mod === atual); });
+      Object.keys(abertos).forEach(function (k) { abertos[k].hidden = k !== atual; });
+      var home = $('#p-inicio'); if (home) home.hidden = !!m;
+      if (!m) { document.documentElement.style.setProperty('--cor', cfg.cor); topoModulo(null); return inicio(); }
+      if (!abertos[m.id]) {
+        var f = document.createElement('iframe'); f.className = 'p-quadro'; f.title = m.nome; f.src = m.src + (m.src.indexOf('?') < 0 ? '?' : '&') + 'v=' + (cfg.versao || '1');
+        f.setAttribute('allow', 'clipboard-read; clipboard-write'); $('#p-conteudo').appendChild(f); abertos[m.id] = f;
+      }
+      topoModulo(m); document.title = m.nome + ' · ' + cfg.nome;
+    }
+    function topoModulo(m) {
+      var t = $('#p-mod-titulo'), topo = $('#p-mod-topo');
+      if (!m) { t.innerHTML = '<strong>Início</strong><small>' + esc(cfg.subtitulo || '') + '</small>'; topo.style.background = ''; topo.classList.remove('colorido'); $('#p-mod-acoes').innerHTML = ''; document.title = cfg.nome; return; }
+      var ks = m.marcasAtuais || m.marcas, cores = ks.map(function (k) { return MARCAS[k].cor; });
+      document.documentElement.style.setProperty('--cor', cores[0]);
+      topo.classList.add('colorido');
+      topo.style.background = 'linear-gradient(110deg,' + (cores.length > 1 ? cores.join(',') : cores[0] + ',' + MARCAS[ks[0]].cor2) + ')';
+      t.innerHTML = '<strong>' + esc(m.nome) + '</strong><small>' + esc(ks.map(function (k) { return MARCAS[k].nome; }).join(' · ')) + ' · ' + esc(m.descricao || '') + '</small>';
+      acoesModulo();
+    }
+    function acoesModulo() {
+      var a = apis[atual] || {}, box = $('#p-mod-acoes');
+      box.innerHTML = (a.preferencias ? '<button class="btn btn-peq" type="button" data-acao="pref">Minhas preferências</button>' : '') + (a.configuracoes ? '<button class="btn btn-peq" type="button" data-acao="conf">Configurações da página</button>' : '');
+      box.onclick = function (ev) { var b = ev.target.closest('[data-acao]'); if (!b) return; (b.dataset.acao === 'pref' ? a.preferencias : a.configuracoes)(); };
+    }
+    function inicio() {
+      var box = $('#p-inicio');
+      if (!box) { box = document.createElement('section'); box.id = 'p-inicio'; box.className = 'p-inicio'; $('#p-conteudo').appendChild(box); }
+      var h = new Date().getHours(), oi = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
+      var vis = cfg.modulos.filter(permitido);
+      box.innerHTML = '<h1>' + oi + ', ' + esc(sessao.nome) + '!</h1><p class="p-ajuda">Escolha uma página no menu ao lado. Tudo fica aqui, com um login só.</p>' +
+        '<div class="p-cartoes">' + vis.map(function (m) {
+          var cores = m.marcas.map(function (k) { return MARCAS[k].cor; });
+          return '<a class="p-cartao" href="#' + esc(m.id) + '" style="--c1:' + cores[0] + ';--c2:' + (cores[1] || MARCAS[m.marcas[0]].cor2) + '"><span class="p-cartao-faixa"></span><strong>' + esc(m.nome) + '</strong><small>' + esc(m.marcas.map(function (k) { return MARCAS[k].nome; }).join(' · ')) + '</small><span class="p-ajuda">' + esc(m.descricao || '') + '</span></a>';
+        }).join('') + '</div>' +
+        '<h2 class="p-inicio-sub">Nossas empresas</h2><div class="p-marcas-grade">' + ['wegen', 'smartben', 'wattwise'].map(function (k) { return banner(k); }).join('') + '</div>';
     }
 
     function montarAbas() {
@@ -396,6 +505,7 @@
       return '<label class="p-campo">' + esc(p.rotulo) + '<input id="' + id + '" data-pref="' + esc(p.chave) + '" value="' + esc(v) + '" placeholder="' + esc(p.exemplo || '') + '">' + ajuda + '</label>';
     }
     function abrirConta() {
+      if (modoModulo) return prefsModulo();
       var tema = prefs.tema || guarda.ler('tema', 'auto');
       var corpo = abrirGaveta('Minha conta',
         '<div class="p-bloco"><h3>' + esc(sessao.nome) + '</h3><p class="p-ajuda">' + (ehAdmin() ? 'Administradora desta plataforma.' : 'Usuário desta plataforma.') + '</p></div>' +
@@ -419,7 +529,7 @@
             await carregarCofre(); var u = cofre.usuarios[sessao.login], mestra;
             try { mestra = await abrirEntrada(u, atual); } catch (e) { err.textContent = 'A senha atual está incorreta.'; return; }
             var novoCofre = JSON.parse(JSON.stringify(cofre));
-            novoCofre.usuarios[sessao.login] = await entradaUsuario(u.nome, u.papel, nova, mestra, nova === SENHA_PADRAO);
+            novoCofre.usuarios[sessao.login] = await entradaUsuario(u.nome, u.papel, nova, mestra, nova === SENHA_PADRAO, u.modulos);
             await salvarCofre(novoCofre, 'Senha trocada por ' + sessao.nome);
             sessao.senhaPadrao = nova === SENHA_PADRAO; guardarSessao();
             ev.target.reset(); aviso('Senha trocada. Vale em cerca de 1 minuto.');
@@ -445,12 +555,22 @@
     function guardarSessao() { guarda.gravar('sessao', sessao, guarda.ler('lembrar', false) ? 'local' : 'sessao'); }
 
     /* ---------- Administração ---------- */
+    function prefsModulo() {
+      var corpo = abrirGaveta('Minhas preferências', '<form class="p-bloco" id="p-form-prefs"><p class="p-ajuda">Valem só para você e acompanham você em qualquer computador.</p>' + cfg.preferencias.map(campoPref).join('') + '<div class="p-linha"><button class="btn btn-primario" type="submit">Salvar preferências</button></div></form>');
+      var fp = $('#p-form-prefs', corpo);
+      fp.onsubmit = async function (ev) {
+        ev.preventDefault(); var m = {}; fp.querySelectorAll('[data-pref]').forEach(function (i) { m[i.dataset.pref] = i.value; });
+        await comBotao(ev.submitter || fp.querySelector('button'), async function () { try { await salvarPrefs(m); aviso('Preferências salvas.'); fecharGaveta(); } catch (e) { aviso(e.message, 'erro'); } });
+      };
+    }
     function abrirAdmin() {
       if (!ehAdmin()) return;
+      if (modoModulo) { abrirGaveta('Configurações da página', '<div id="p-admin-extra"></div>'); (cfg.admin || []).forEach(function (sec) { var d = document.createElement('div'); d.className = 'p-bloco'; d.innerHTML = '<h3>' + esc(sec.titulo) + '</h3>'; $('#p-admin-extra').appendChild(d); sec.desenhar(d, ctx); }); return; }
       var corpo = abrirGaveta('Administração',
         '<div class="p-bloco"><h3>Usuários</h3><p class="p-ajuda">Quem entra é incluído com a senha <b>' + SENHA_PADRAO + '</b> e pode trocá-la em Minha conta. As mudanças valem em cerca de 1 minuto.</p>' +
           '<div class="p-usuarios" id="p-lista-usuarios"></div>' +
-          '<form class="p-linha" id="p-form-novo"><input class="p-entrada" id="p-novo-nome" placeholder="Nome da pessoa" required><select class="p-entrada" id="p-novo-papel" style="flex:0 1 170px"><option value="usuario">Usuário</option><option value="admin">Administradora</option></select><button class="btn btn-primario" type="submit">Incluir</button></form>' +
+          '<form class="p-novo" id="p-form-novo"><div class="p-linha"><input class="p-entrada" id="p-novo-nome" placeholder="Nome da pessoa" required><select class="p-entrada" id="p-novo-papel" style="flex:0 1 170px"><option value="usuario">Usuário</option><option value="admin">Administradora</option></select><button class="btn btn-primario" type="submit">Incluir</button></div>' + (modoPortal ? '<div class="p-chips">' + cfg.modulos.map(function (m) { return '<label class="p-chip"><input type="checkbox" data-mod-novo="' + esc(m.id) + '">' + esc(m.nome) + '</label>'; }).join('') + '</div>' : '') + '</form>' +
+          (modoPortal ? '<div id="p-faltam"></div>' : '') +
           '<p class="p-erro" id="p-admin-erro" role="alert"></p></div>' +
         '<form class="p-bloco" id="p-form-token"><h3>Token do GitHub</h3><p class="p-ajuda">Use quando o token vencer. Ele precisa de <b>Contents: Read and write</b> em <code>' + esc(cfg.repoSite) + '</code> e <code>' + esc(cfg.repoDados) + '</code>. Ninguém precisa trocar a senha.</p>' +
           '<input class="p-entrada" type="password" id="p-token-novo" placeholder="github_pat_..." autocomplete="off" required><div class="p-linha"><button class="btn btn-primario" type="submit">Trocar token</button></div><p class="p-erro" id="p-token-erro" role="alert"></p></form>' +
@@ -464,7 +584,7 @@
             await carregarCofre();
             if (cofre.usuarios[login]) { err.textContent = 'Já existe alguém com esse nome.'; return; }
             var novo = JSON.parse(JSON.stringify(cofre));
-            novo.usuarios[login] = await entradaUsuario(nome, papel, SENHA_PADRAO, unb64(sessao.mestra), true);
+            novo.usuarios[login] = await entradaUsuario(nome, papel, SENHA_PADRAO, unb64(sessao.mestra), true, modoPortal ? modulosMarcados(ev.target) : undefined);
             await salvarCofre(novo, 'Acesso incluído: ' + nome + ' (por ' + sessao.nome + ')');
             ev.target.reset(); desenharUsuarios(); aviso(nome + ' incluída(o) com a senha ' + SENHA_PADRAO + '.');
           } catch (e) { err.textContent = e.message; }
@@ -475,7 +595,8 @@
         await comBotao(ev.submitter || ev.target.querySelector('button'), async function () {
           try {
             var teste = GitHub(function () { return tok; });
-            if (!(await teste.podeGravar(cfg.repoSite)) || !(await teste.podeGravar(cfg.repoDados))) { err.textContent = 'Esse token não consegue gravar nos dois repositórios.'; return; }
+            var repos = [cfg.repoSite, cfg.repoDados].concat((cfg.modulos || []).reduce(function (l, m) { return l.concat(m.repos || []); }, [])).filter(function (r, i, l) { return l.indexOf(r) === i; });
+            for (var ri = 0; ri < repos.length; ri++) if (!(await teste.podeGravar(repos[ri]))) { err.textContent = 'Esse token não consegue gravar em ' + repos[ri] + '. Marque esse repositório no token.'; return; }
             var antigo = sessao.token; sessao.token = tok;
             try {
               await carregarCofre(); var novo = JSON.parse(JSON.stringify(cofre));
@@ -489,13 +610,35 @@
       };
       (cfg.admin || []).forEach(function (sec) { var d = document.createElement('div'); d.className = 'p-bloco'; d.innerHTML = '<h3>' + esc(sec.titulo) + '</h3>'; $('#p-admin-extra').appendChild(d); sec.desenhar(d, ctx); });
     }
+    function modulosMarcados(form) { return Array.prototype.map.call(form.querySelectorAll('[data-mod-novo]:checked'), function (i) { return i.dataset.modNovo; }); }
+    function desenharFaltam() {
+      var box = $('#p-faltam'); if (!box) return;
+      var pessoas = {};
+      cfg.modulos.forEach(function (m) { (m.usuarios || []).forEach(function (n) { var l = slug(n); if (cofre.usuarios[l]) return; (pessoas[l] = pessoas[l] || { nome: n, modulos: [] }).modulos.push(m.id); }); });
+      var ls = Object.keys(pessoas);
+      if (!ls.length) { box.innerHTML = ''; return; }
+      box.innerHTML = '<div class="p-faixa aviso" style="margin:0"><span style="flex:1 1 260px">Pessoas que usavam as plataformas antigas e ainda não estão aqui: <b>' + ls.map(function (l) { return esc(pessoas[l].nome); }).join(', ') + '</b>. Elas entram com a senha ' + SENHA_PADRAO + ' e veem só as páginas que já usavam.</span><button class="btn btn-peq btn-primario" type="button" id="p-incluir-faltam">Incluir todas</button></div>';
+      $('#p-incluir-faltam').onclick = function () {
+        var b = this;
+        comBotao(b, async function () {
+          try {
+            await carregarCofre(); var n = JSON.parse(JSON.stringify(cofre)), mestra = unb64(sessao.mestra);
+            for (var i = 0; i < ls.length; i++) if (!n.usuarios[ls[i]]) n.usuarios[ls[i]] = await entradaUsuario(pessoas[ls[i]].nome, 'usuario', SENHA_PADRAO, mestra, true, pessoas[ls[i]].modulos);
+            await salvarCofre(n, 'Acessos das plataformas antigas incluídos (por ' + sessao.nome + ')');
+            aviso('Incluídas com a senha ' + SENHA_PADRAO + '.'); desenharUsuarios();
+          } catch (e) { $('#p-admin-erro').textContent = e.message; }
+        });
+      };
+    }
     function desenharUsuarios() {
       var box = $('#p-lista-usuarios'); if (!box) return;
+      desenharFaltam();
       box.innerHTML = listaUsuarios().map(function (u) {
         var eu = u.login === sessao.login;
         return '<div class="p-usuario-item" data-login="' + esc(u.login) + '"><strong>' + esc(u.nome) + (eu ? ' <span class="p-dica">(você)</span>' : '') + (u.senhaPadrao ? ' <span class="p-dica">· senha padrão</span>' : '') + '</strong>' +
           '<select data-acao="papel"' + (eu ? ' disabled title="Você não pode tirar o seu próprio acesso de administradora"' : '') + '><option value="usuario"' + (u.papel !== 'admin' ? ' selected' : '') + '>Usuário</option><option value="admin"' + (u.papel === 'admin' ? ' selected' : '') + '>Administradora</option></select>' +
           '<button class="btn btn-peq" data-acao="redefinir" type="button">Senha ' + SENHA_PADRAO + '</button>' +
+          (modoPortal ? '<div class="p-chips">' + cfg.modulos.map(function (m) { var on = u.papel === 'admin' || (Array.isArray(u.modulos) ? u.modulos.indexOf(m.id) >= 0 : (m.usuarios || []).map(slug).indexOf(u.login) >= 0); return '<label class="p-chip' + (u.papel === 'admin' ? ' fixo' : '') + '"><input type="checkbox" data-acao="modulo" value="' + esc(m.id) + '"' + (on ? ' checked' : '') + (u.papel === 'admin' ? ' disabled title="Administradoras veem todas as páginas"' : '') + '>' + esc(m.nome) + '</label>'; }).join('') + '</div>' : '') +
           (eu ? '' : '<button class="btn btn-peq btn-perigo" data-acao="remover" type="button">Remover</button>') + '</div>';
       }).join('');
       box.onclick = async function (ev) {
@@ -506,11 +649,19 @@
           await comBotao(b, async function () { try { await carregarCofre(); var n = JSON.parse(JSON.stringify(cofre)); delete n.usuarios[login]; await salvarCofre(n, 'Acesso removido: ' + u.nome + ' (por ' + sessao.nome + ')'); aviso(u.nome + ' não tem mais acesso.'); } catch (e) { err.textContent = e.message; } });
           desenharUsuarios();
         } else if (b.dataset.acao === 'redefinir') {
-          await comBotao(b, async function () { try { await carregarCofre(); var n = JSON.parse(JSON.stringify(cofre)); n.usuarios[login] = await entradaUsuario(u.nome, u.papel, SENHA_PADRAO, unb64(sessao.mestra), true); await salvarCofre(n, 'Senha redefinida: ' + u.nome + ' (por ' + sessao.nome + ')'); aviso('Senha de ' + u.nome + ' voltou para ' + SENHA_PADRAO + '.'); } catch (e) { err.textContent = e.message; } });
+          await comBotao(b, async function () { try { await carregarCofre(); var n = JSON.parse(JSON.stringify(cofre)); n.usuarios[login] = await entradaUsuario(u.nome, u.papel, SENHA_PADRAO, unb64(sessao.mestra), true, u.modulos); await salvarCofre(n, 'Senha redefinida: ' + u.nome + ' (por ' + sessao.nome + ')'); aviso('Senha de ' + u.nome + ' voltou para ' + SENHA_PADRAO + '.'); } catch (e) { err.textContent = e.message; } });
           desenharUsuarios();
         }
       };
       box.onchange = async function (ev) {
+        var cb = ev.target.closest('input[data-acao="modulo"]');
+        if (cb) {
+          var lg = cb.closest('[data-login]').dataset.login, marcados = Array.prototype.map.call(cb.closest('.p-chips').querySelectorAll('input:checked'), function (i) { return i.value; });
+          cb.disabled = true;
+          try { await carregarCofre(); var nc = JSON.parse(JSON.stringify(cofre)); nc.usuarios[lg].modulos = marcados; await salvarCofre(nc, 'Páginas de ' + nc.usuarios[lg].nome + ' (por ' + sessao.nome + ')'); aviso('Acesso às páginas atualizado.'); }
+          catch (e) { $('#p-admin-erro').textContent = e.message; } finally { desenharUsuarios(); }
+          return;
+        }
         var s = ev.target.closest('select[data-acao="papel"]'); if (!s) return;
         var login = s.closest('[data-login]').dataset.login, err = $('#p-admin-erro'); s.disabled = true;
         try { await carregarCofre(); var n = JSON.parse(JSON.stringify(cofre)); n.usuarios[login].papel = s.value; await salvarCofre(n, 'Perfil de ' + n.usuarios[login].nome + ': ' + s.value + ' (por ' + sessao.nome + ')'); aviso('Perfil atualizado.'); }
@@ -559,6 +710,7 @@
 
     /* ---------- partida ---------- */
     (async function () {
+      if (modoModulo) { var u = PAI.usuario; sessao = { login: u.login, nome: u.nome, papel: u.papel, token: PAI.token }; return entrar(); }
       await carregarCofre();
       if (location.hash === '#configurar') return telaConfig(!!cofre);
       if (!cofre) return telaConfig(false);
@@ -600,7 +752,7 @@
     var m = MARCAS[chave]; opcoes = opcoes || {};
     if (!m) return '';
     var zap = opcoes.whatsapp === false ? '' : '<div class="p-banner-zap">' + m.whatsapp.map(function (n) { return '<span>WhatsApp ' + esc(n) + '</span>'; }).join('') + '</div>';
-    return '<section class="p-banner" style="--marca:' + m.cor + '" aria-label="' + esc(m.nome) + '">' + ilustracao(m) +
+    return '<section class="p-banner' + (opcoes.compacto ? ' compacto' : '') + '" style="--marca:' + m.cor + '" aria-label="' + esc(m.nome) + '">' + ilustracao(m) +
       '<div class="p-banner-texto"><strong>' + esc(opcoes.titulo || m.nome) + '</strong><span>' + esc(opcoes.subtitulo || m.frase) + '</span>' + zap + '</div></section>';
   }
 

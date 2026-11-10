@@ -26,13 +26,13 @@
   /* ======================= partida ======================= */
   Plataforma.iniciar({
     id: 'central-atendimento',
+    moduloId: 'atendimento', // página do portal único
     nome: 'Central de Atendimento',
     subtitulo: 'WeGen · SmartBen · WattWise',
     letra: 'A',
     cor: '#2f4fa8',
     repoSite: 'danielamotaxp-code/central-atendimento',
     cofre: 'cofre.json',
-    cofreRepo: 'novo/cofre.json', // enquanto o piloto estiver em /novo/
     repoDados: 'danielamotaxp-code/central-atendimento-dados',
     usuariosIniciais: ['Daniela', 'Paula', 'Luis', 'Victor'],
     admins: ['Daniela'],
@@ -146,6 +146,7 @@
     var marca = Plataforma.marcas[empresa];
     document.documentElement.style.setProperty('--cor', (marca && marca.cor) || ctx.cfg.cor);
     $('#ca-banner').innerHTML = Plataforma.banner(empresa);
+    ctx.marca([empresa]);
     $('#ca-empresas').innerHTML = Object.keys(D.empresas).map(function (k) { return '<button type="button" data-emp="' + k + '" aria-pressed="' + (k === empresa) + '">' + esc(nomeEmp(k)) + '</button>'; }).join('');
     var sel = $('#ca-saudsel'); sel.value = saudPref(); var h = new Date().getHours(); sel.options[0].textContent = 'Automática (' + (h < 12 ? 'bom dia' : h < 18 ? 'boa tarde' : 'boa noite') + ')';
     desenharNav(); desenharTop(); desenharLista(); desenharCampos();

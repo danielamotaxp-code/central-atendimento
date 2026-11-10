@@ -145,4 +145,72 @@ a { color: var(--cor-forte); }
 .p-banner-texto > span { font-size: .95rem; opacity: .95; font-weight: 500; }
 .p-banner-zap { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .p-banner-zap span { background: rgba(255, 255, 255, .2); border: 1px solid rgba(255, 255, 255, .35); border-radius: 999px; padding: 3px 10px; font-size: .8rem; font-weight: 600; text-shadow: none; backdrop-filter: blur(2px); }
-@media (max-width: 640px) { .p-banner-texto { max-width: 100%; padding: 16px 18px; } .p-banner { min-height: 150px; } .p-banner::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, color-mix(in srgb, var(--marca) 70%, transparent), transparent 85%); } }
+.p-banner::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, color-mix(in srgb, var(--marca) 78%, transparent) 0%, color-mix(in srgb, var(--marca) 45%, transparent) 45%, transparent 75%); }
+@media (max-width: 640px) { .p-banner-texto { max-width: 100%; padding: 16px 18px; } .p-banner { min-height: 150px; } }
+
+/* ===== portal: menu lateral ===== */
+.p-portal { display: grid; grid-template-columns: 260px minmax(0, 1fr); height: 100vh; height: 100dvh; }
+.p-lateral { background: var(--cartao); border-right: 1px solid var(--borda); display: flex; flex-direction: column; min-height: 0; }
+.p-lateral-topo { padding: 16px 16px 12px; border-bottom: 1px solid var(--borda); }
+.p-menu { flex: 1; overflow-y: auto; padding: 10px 8px; display: flex; flex-direction: column; gap: 2px; }
+.p-menu-item { display: flex; gap: 10px; align-items: center; padding: 9px 10px; border-radius: 8px; color: var(--texto); text-decoration: none; font-weight: 600; font-size: .93rem; }
+.p-menu-item small { display: block; font-weight: 500; font-size: .74rem; color: var(--texto-3); }
+.p-menu-item:hover { background: var(--afundado); }
+.p-menu-item.ativo { background: var(--cor-suave); color: var(--cor-forte); box-shadow: inset 3px 0 0 var(--cor); }
+.p-ponto { flex: none; width: 12px; height: 12px; border-radius: 4px; }
+.p-lateral-pe { border-top: 1px solid var(--borda); padding: 10px 12px 14px; display: flex; flex-wrap: wrap; gap: 2px 4px; align-items: center; }
+.p-lateral-pe .p-nome { width: 100%; padding: 0 8px 4px; }
+.p-principal { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.p-mod-topo { display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-bottom: 1px solid var(--borda); background: var(--cartao); min-height: 64px; }
+.p-mod-topo.colorido { color: #fff; border-bottom: 0; text-shadow: 0 1px 2px rgba(0, 0, 0, .15); }
+.p-mod-titulo { flex: 1; min-width: 0; }
+.p-mod-titulo strong { display: block; font-size: 1.12rem; line-height: 1.2; }
+.p-mod-titulo small { display: block; font-size: .8rem; opacity: .85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.p-mod-acoes { display: flex; gap: 6px; flex-wrap: wrap; }
+.p-mod-topo.colorido .btn { background: rgba(255, 255, 255, .18); border-color: rgba(255, 255, 255, .4); color: #fff; text-shadow: none; }
+.p-mod-topo.colorido .btn:hover { background: rgba(255, 255, 255, .3); }
+.p-menu-btn { display: none; }
+.p-portal .p-faixas { padding: 0 16px; }
+.p-portal .p-faixa { margin: 10px 0 0; max-width: none; }
+.p-portal-conteudo { flex: 1; min-height: 0; position: relative; overflow: auto; }
+.p-quadro { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: var(--fundo); }
+.p-inicio { max-width: 1100px; margin: 0 auto; padding: 28px 24px 60px; display: grid; gap: 14px; }
+.p-inicio h1 { margin: 0; font-size: 1.7rem; letter-spacing: -.01em; }
+.p-inicio-sub { margin: 18px 0 0; font-size: 1.05rem; }
+.p-cartoes { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.p-cartao { position: relative; overflow: hidden; background: var(--cartao); border: 1px solid var(--borda); border-radius: 12px; padding: 22px 16px 16px; text-decoration: none; color: var(--texto); display: grid; gap: 4px; transition: transform .15s, box-shadow .15s; }
+.p-cartao:hover { transform: translateY(-2px); box-shadow: var(--sombra); border-color: var(--c1); }
+.p-cartao-faixa { position: absolute; inset: 0 0 auto; height: 6px; background: linear-gradient(90deg, var(--c1), var(--c2)); }
+.p-cartao strong { font-size: 1.05rem; }
+.p-cartao small { color: var(--c1); font-weight: 700; font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; }
+.p-cartao .p-ajuda { font-size: .87rem; }
+.p-marcas-grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
+.p-marcas-grade .p-banner-texto { max-width: 78%; }
+.p-marcas-grade .p-banner-arte, .p-login-marcas .p-banner-arte { left: 30%; width: 70%; }
+.p-marcas-grade .p-banner-texto strong { font-size: 1.5rem; }
+.p-banner.compacto { min-height: 72px; border-radius: 10px; box-shadow: none; }
+.p-banner.compacto .p-banner-texto { padding: 10px 16px; gap: 2px; }
+.p-banner.compacto .p-banner-texto strong { font-size: 1.15rem; }
+.p-banner.compacto .p-banner-texto > span { font-size: .78rem; }
+.p-banner.compacto .p-banner-zap { margin-top: 4px; }
+.p-login-marcas { position: fixed; inset: 0 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0; z-index: 0; }
+.p-login-marcas .p-banner { border-radius: 0; min-height: 96px; }
+.p-login { position: relative; }
+.p-login-card { position: relative; z-index: 1; }
+.p-chips { display: flex; flex-wrap: wrap; gap: 4px; width: 100%; }
+.p-chip { display: inline-flex; align-items: center; gap: 5px; font-size: .78rem; font-weight: 600; border: 1px solid var(--borda); background: var(--cartao); border-radius: 999px; padding: 2px 9px 2px 6px; cursor: pointer; }
+.p-chip input { width: 14px; height: 14px; accent-color: var(--cor); margin: 0; }
+.p-chip.fixo { opacity: .7; cursor: default; }
+.p-novo { display: grid; gap: 8px; }
+html.p-modulo body { background: var(--fundo); }
+html.p-modulo .p-topo { display: none; }
+@media (max-width: 860px) {
+  .p-portal { grid-template-columns: minmax(0, 1fr); }
+  .p-lateral { position: fixed; inset: 0 auto 0 0; width: min(290px, 86vw); z-index: 70; transform: translateX(-102%); transition: transform .2s; box-shadow: var(--sombra); }
+  html.p-menu-aberto .p-lateral { transform: none; }
+  html.p-menu-aberto .p-veu-menu { display: block !important; position: fixed; inset: 0; z-index: 69; background: rgba(10, 15, 25, .35); }
+  .p-menu-btn { display: inline-flex; }
+  .p-mod-topo { padding: 10px 12px; }
+  .p-login-marcas { position: static; }
+  .p-login { align-content: start; }
+}

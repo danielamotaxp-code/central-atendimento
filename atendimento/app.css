@@ -75,3 +75,5 @@
   .ca-nav .c, .ca-navlabel { display: none; }
 }
 #ca-migrar:empty, #ca-editor:empty { display: none; }
+html.p-modulo .ca-barra { top: 0; }
+html.p-modulo .ca-nav { top: 72px; }
