@@ -227,19 +227,25 @@
     }
 
     /* ---------- cofre ---------- */
+    function cofreValido(c) { return !!(c && c.usuarios && Object.keys(c.usuarios).length && c.token); }
+    /**
+     * Lê o cofre publicado. O GitHub Pages leva ~1 minuto para publicar uma
+     * mudança, então fica com a versão mais nova entre a publicada, a que está
+     * na memória e a última que este navegador salvou.
+     */
     async function carregarCofre() {
-      try {
-        var r = await fetch(cfg.cofre + '?t=' + Date.now(), { cache: 'no-store' });
-        cofre = r.ok ? await r.json() : null;
-      } catch (e) { cofre = null; }
-      if (cofre && (!cofre.usuarios || !Object.keys(cofre.usuarios).length || !cofre.token)) cofre = null;
+      var publicado = null;
+      try { var r = await fetch(cfg.cofre + '?t=' + Date.now(), { cache: 'no-store' }); if (r.ok) publicado = await r.json(); } catch (e) { /* sem rede */ }
+      var opcoes = [publicado, cofre, guarda.ler('cofre', null)].filter(cofreValido);
+      opcoes.sort(function (a, b) { return String(b.atualizadoEm || '').localeCompare(String(a.atualizadoEm || '')); });
+      cofre = opcoes[0] || null;
     }
     /** Grava o cofre no repositório do site. Relê o sha atual para não falhar. */
     async function salvarCofre(novo, mensagem) {
       novo.versao = 2; novo.plataforma = cfg.id; novo.atualizadoEm = new Date().toISOString();
       var atual = await gh.ler(cfg.repoSite, cfg.cofreRepo);
       shaCofre = await gh.gravar(cfg.repoSite, cfg.cofreRepo, JSON.stringify(novo, null, 2) + '\n', atual && atual.sha, mensagem);
-      cofre = novo;
+      cofre = novo; guarda.gravar('cofre', novo);
     }
     function listaUsuarios() {
       return Object.keys(cofre.usuarios).map(function (k) { return Object.assign({ login: k }, cofre.usuarios[k]); })
