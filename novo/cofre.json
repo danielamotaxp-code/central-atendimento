@@ -1,0 +1,43 @@
+{
+  "usuarios": {
+    "daniela": {
+      "nome": "Daniela",
+      "papel": "admin",
+      "salt": "nAIC2ziY8x9WbVHcBmG++g==",
+      "iv": "nLs65rYn5olPV6YO",
+      "chave": "CXJdcabil7vGt6uWhgn/OgviGH/7A8ArTD24Fu/QvNOMSpvt0VaYtFyXkkgszXxd",
+      "senhaPadrao": true
+    },
+    "paula": {
+      "nome": "Paula",
+      "papel": "usuario",
+      "salt": "d3TXTLm+LX8QSueIUgv8bQ==",
+      "iv": "4F+W3vWzeNHDGNex",
+      "chave": "QrljWvzdaVvQZpHE9S9AGPwLEPzcnwu6+W02eXeiV+IuHqX/a8l6YfYQ4mbcqRKb",
+      "senhaPadrao": true
+    },
+    "luis": {
+      "nome": "Luis",
+      "papel": "usuario",
+      "salt": "bvv83gOCtqsn8QuwJF3cqA==",
+      "iv": "zxeIBxlH6BIkTODl",
+      "chave": "+pGN39ESTxqSdZYhgkF7gy7npo5Pi+8dt78g3C9bicstDK/izLR8u9YMe1nu+hHD",
+      "senhaPadrao": true
+    },
+    "victor": {
+      "nome": "Victor",
+      "papel": "usuario",
+      "salt": "Z0pDqRgcmSqQcj8rEXPm2w==",
+      "iv": "SAVAGOf/RGBbt1c9",
+      "chave": "/49uuEA4A+jtGgRadujy4n8KRR4kotm9IFmmvZlX/YvlRj31aUkWmb1ASt4Wde7l",
+      "senhaPadrao": true
+    }
+  },
+  "token": {
+    "iv": "G36eHYSUhZPRVGO4",
+    "dados": "giu3bS9gzXZ2gpQUx1JtfRw22wYjfYfymg1pRizzlIF0ChXcEK5cs/tbPpq35Xj/Nfr2Jdll6HP3AGEEZtHL/Majho2+NT3Hsmeyiwoo0s8RdkgaKwZ9r7DdsAyjjZ4KaQbGGkB7/GVIaZ2A1Q=="
+  },
+  "versao": 2,
+  "plataforma": "central-atendimento",
+  "atualizadoEm": "2026-11-10T22:59:52.750Z"
+}
