@@ -14,15 +14,7 @@
       "salt": "d3TXTLm+LX8QSueIUgv8bQ==",
       "iv": "4F+W3vWzeNHDGNex",
       "chave": "QrljWvzdaVvQZpHE9S9AGPwLEPzcnwu6+W02eXeiV+IuHqX/a8l6YfYQ4mbcqRKb",
-      "senhaPadrao": true,
-      "modulos": [
-        "atendimento",
-        "cobranca",
-        "faturas",
-        "ouvidorias",
-        "distratos",
-        "auditoria"
-      ]
+      "senhaPadrao": true
     },
     "luis": {
       "nome": "Luis",
@@ -30,12 +22,7 @@
       "salt": "bvv83gOCtqsn8QuwJF3cqA==",
       "iv": "zxeIBxlH6BIkTODl",
       "chave": "+pGN39ESTxqSdZYhgkF7gy7npo5Pi+8dt78g3C9bicstDK/izLR8u9YMe1nu+hHD",
-      "senhaPadrao": true,
-      "modulos": [
-        "atendimento",
-        "cobranca",
-        "auditoria"
-      ]
+      "senhaPadrao": true
     },
     "victor": {
       "nome": "Victor",
@@ -43,12 +30,7 @@
       "salt": "Z0pDqRgcmSqQcj8rEXPm2w==",
       "iv": "SAVAGOf/RGBbt1c9",
       "chave": "/49uuEA4A+jtGgRadujy4n8KRR4kotm9IFmmvZlX/YvlRj31aUkWmb1ASt4Wde7l",
-      "senhaPadrao": true,
-      "modulos": [
-        "atendimento",
-        "cobranca",
-        "ouvidorias"
-      ]
+      "senhaPadrao": true
     }
   },
   "token": {

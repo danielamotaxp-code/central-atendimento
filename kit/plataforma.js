@@ -65,7 +65,7 @@
     var salt = aleatorio(16);
     var c = await cifrar(await chaveDaSenha(senha, salt), mestra);
     var e = { nome: nome, papel: papel, salt: b64(salt), iv: c.iv, chave: c.dados, senhaPadrao: !!padrao };
-    if (Array.isArray(modulos)) e.modulos = modulos;
+    if (Array.isArray(modulos) && modulos.length && modulos.length < 6) e.modulos = modulos; // todas marcadas = vê tudo
     return e;
   }
   async function abrirEntrada(u, senha) {
@@ -301,7 +301,7 @@
       if (modoModulo) return PAI.sair();
       guarda.apagar('sessao', 'sessao'); guarda.apagar('sessao', 'local'); sessao = null;
       (cfg.limparAoSair || []).forEach(function (k) { try { sessionStorage.removeItem(k); localStorage.removeItem(k); } catch (e) { /* nada */ } });
-      if (modoPortal) { Object.keys(abertos).forEach(function (k) { abertos[k].remove(); delete abertos[k]; }); apis = {}; ouvintesTema = []; delete window.PlataformaAtual; var hi = $('#p-inicio'); if (hi) hi.remove(); }
+      if (modoPortal) { try { history.replaceState(null, '', location.pathname); } catch (e) { /* nada */ } Object.keys(abertos).forEach(function (k) { abertos[k].remove(); delete abertos[k]; }); apis = {}; ouvintesTema = []; delete window.PlataformaAtual; var hi = $('#p-inicio'); if (hi) hi.remove(); }
       document.documentElement.style.setProperty('--cor', cfg.cor);
       fecharGaveta(); $('#p-conteudo').innerHTML = ''; $('#p-faixas').innerHTML = '';
       if (cfg.aoSair) try { cfg.aoSair(); } catch (e) { /* ignora */ }
@@ -401,7 +401,7 @@
       var u = cofre && cofre.usuarios[sessao.login];
       var lista = u && u.modulos;
       if (Array.isArray(lista)) return lista.indexOf(m.id) >= 0;
-      return (m.usuarios || []).map(slug).indexOf(sessao.login) >= 0;
+      return true;
     }
     function corDe(m) { var k = (m.marcas || [])[0]; return (MARCAS[k] && MARCAS[k].cor) || cfg.cor; }
     function montarPortal() {
@@ -569,7 +569,7 @@
       var corpo = abrirGaveta('Administração',
         '<div class="p-bloco"><h3>Usuários</h3><p class="p-ajuda">Quem entra é incluído com a senha <b>' + SENHA_PADRAO + '</b> e pode trocá-la em Minha conta. As mudanças valem em cerca de 1 minuto.</p>' +
           '<div class="p-usuarios" id="p-lista-usuarios"></div>' +
-          '<form class="p-novo" id="p-form-novo"><div class="p-linha"><input class="p-entrada" id="p-novo-nome" placeholder="Nome da pessoa" required><select class="p-entrada" id="p-novo-papel" style="flex:0 1 170px"><option value="usuario">Usuário</option><option value="admin">Administradora</option></select><button class="btn btn-primario" type="submit">Incluir</button></div>' + (modoPortal ? '<div class="p-chips">' + cfg.modulos.map(function (m) { return '<label class="p-chip"><input type="checkbox" data-mod-novo="' + esc(m.id) + '">' + esc(m.nome) + '</label>'; }).join('') + '</div>' : '') + '</form>' +
+          '<form class="p-novo" id="p-form-novo"><div class="p-linha"><input class="p-entrada" id="p-novo-nome" placeholder="Nome da pessoa" required><select class="p-entrada" id="p-novo-papel" style="flex:0 1 170px"><option value="usuario">Usuário</option><option value="admin">Administradora</option></select><button class="btn btn-primario" type="submit">Incluir</button></div>' + (modoPortal ? '<div class="p-chips">' + cfg.modulos.map(function (m) { return '<label class="p-chip"><input type="checkbox" checked data-mod-novo="' + esc(m.id) + '">' + esc(m.nome) + '</label>'; }).join('') + '</div>' : '') + '</form>' +
           (modoPortal ? '<div id="p-faltam"></div>' : '') +
           '<p class="p-erro" id="p-admin-erro" role="alert"></p></div>' +
         '<form class="p-bloco" id="p-form-token"><h3>Token do GitHub</h3><p class="p-ajuda">Use quando o token vencer. Ele precisa de <b>Contents: Read and write</b> em <code>' + esc(cfg.repoSite) + '</code> e <code>' + esc(cfg.repoDados) + '</code>. Ninguém precisa trocar a senha.</p>' +
@@ -617,13 +617,13 @@
       cfg.modulos.forEach(function (m) { (m.usuarios || []).forEach(function (n) { var l = slug(n); if (cofre.usuarios[l]) return; (pessoas[l] = pessoas[l] || { nome: n, modulos: [] }).modulos.push(m.id); }); });
       var ls = Object.keys(pessoas);
       if (!ls.length) { box.innerHTML = ''; return; }
-      box.innerHTML = '<div class="p-faixa aviso" style="margin:0"><span style="flex:1 1 260px">Pessoas que usavam as plataformas antigas e ainda não estão aqui: <b>' + ls.map(function (l) { return esc(pessoas[l].nome); }).join(', ') + '</b>. Elas entram com a senha ' + SENHA_PADRAO + ' e veem só as páginas que já usavam.</span><button class="btn btn-peq btn-primario" type="button" id="p-incluir-faltam">Incluir todas</button></div>';
+      box.innerHTML = '<div class="p-faixa aviso" style="margin:0"><span style="flex:1 1 260px">Pessoas que usavam as plataformas antigas e ainda não estão aqui: <b>' + ls.map(function (l) { return esc(pessoas[l].nome); }).join(', ') + '</b>. Elas entram com a senha ' + SENHA_PADRAO + ' e veem todas as páginas.</span><button class="btn btn-peq btn-primario" type="button" id="p-incluir-faltam">Incluir todas</button></div>';
       $('#p-incluir-faltam').onclick = function () {
         var b = this;
         comBotao(b, async function () {
           try {
             await carregarCofre(); var n = JSON.parse(JSON.stringify(cofre)), mestra = unb64(sessao.mestra);
-            for (var i = 0; i < ls.length; i++) if (!n.usuarios[ls[i]]) n.usuarios[ls[i]] = await entradaUsuario(pessoas[ls[i]].nome, 'usuario', SENHA_PADRAO, mestra, true, pessoas[ls[i]].modulos);
+            for (var i = 0; i < ls.length; i++) if (!n.usuarios[ls[i]]) n.usuarios[ls[i]] = await entradaUsuario(pessoas[ls[i]].nome, 'usuario', SENHA_PADRAO, mestra, true);
             await salvarCofre(n, 'Acessos das plataformas antigas incluídos (por ' + sessao.nome + ')');
             aviso('Incluídas com a senha ' + SENHA_PADRAO + '.'); desenharUsuarios();
           } catch (e) { $('#p-admin-erro').textContent = e.message; }
@@ -638,7 +638,7 @@
         return '<div class="p-usuario-item" data-login="' + esc(u.login) + '"><strong>' + esc(u.nome) + (eu ? ' <span class="p-dica">(você)</span>' : '') + (u.senhaPadrao ? ' <span class="p-dica">· senha padrão</span>' : '') + '</strong>' +
           '<select data-acao="papel"' + (eu ? ' disabled title="Você não pode tirar o seu próprio acesso de administradora"' : '') + '><option value="usuario"' + (u.papel !== 'admin' ? ' selected' : '') + '>Usuário</option><option value="admin"' + (u.papel === 'admin' ? ' selected' : '') + '>Administradora</option></select>' +
           '<button class="btn btn-peq" data-acao="redefinir" type="button">Senha ' + SENHA_PADRAO + '</button>' +
-          (modoPortal ? '<div class="p-chips">' + cfg.modulos.map(function (m) { var on = u.papel === 'admin' || (Array.isArray(u.modulos) ? u.modulos.indexOf(m.id) >= 0 : (m.usuarios || []).map(slug).indexOf(u.login) >= 0); return '<label class="p-chip' + (u.papel === 'admin' ? ' fixo' : '') + '"><input type="checkbox" data-acao="modulo" value="' + esc(m.id) + '"' + (on ? ' checked' : '') + (u.papel === 'admin' ? ' disabled title="Administradoras veem todas as páginas"' : '') + '>' + esc(m.nome) + '</label>'; }).join('') + '</div>' : '') +
+          (modoPortal ? '<div class="p-chips">' + cfg.modulos.map(function (m) { var on = u.papel === 'admin' || (Array.isArray(u.modulos) ? u.modulos.indexOf(m.id) >= 0 : true); return '<label class="p-chip' + (u.papel === 'admin' ? ' fixo' : '') + '"><input type="checkbox" data-acao="modulo" value="' + esc(m.id) + '"' + (on ? ' checked' : '') + (u.papel === 'admin' ? ' disabled title="Administradoras veem todas as páginas"' : '') + '>' + esc(m.nome) + '</label>'; }).join('') + '</div>' : '') +
           (eu ? '' : '<button class="btn btn-peq btn-perigo" data-acao="remover" type="button">Remover</button>') + '</div>';
       }).join('');
       box.onclick = async function (ev) {
