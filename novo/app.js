@@ -88,6 +88,7 @@
       '<div class="ca-busca"><input id="ca-q" type="search" placeholder="Buscar mensagem (ex.: protesto, distrato, saldo)" aria-label="Buscar mensagem"></div>' +
       '<button class="btn btn-peq btn-primario" id="ca-nova">Nova mensagem</button><button class="btn btn-peq" id="ca-atualizar" title="Buscar alterações feitas pela equipe">Atualizar</button></div>' +
       '<div class="ca-wrap"><nav class="ca-nav" id="ca-nav" aria-label="Etapas do atendimento"></nav><main class="ca-main">' +
+        '<div id="ca-banner"></div>' +
         '<section class="ca-caixa" aria-label="Dados do cliente"><div class="ca-caixa-topo"><h2>Dados do cliente atual</h2><button class="btn btn-peq" id="ca-limpar">Limpar para novo cliente</button></div>' +
           '<div class="ca-campos" id="ca-campos"></div><div class="ca-legenda"><span>Os campos entre <code>[colchetes]</code> são preenchidos aqui e valem para todas as mensagens.</span><span>A saudação segue o campo Saudação do topo e a assinatura de cada empresa entra sozinha no fim.</span><span><code>*texto*</code> fica em negrito no WhatsApp.</span></div></section>' +
         '<div id="ca-migrar"></div>' +
@@ -115,7 +116,7 @@
     var s = m.setor || 'financeiro'; if (!SETORES[s]) return '';
     var e = emp(), modelo = (prefs().assinatura || '').trim() || e.assinatura || '*{setor} {empresa}*';
     var sig = modelo.replace(/\{setor\}/gi, SETORES[s]);
-    return (m.fecho === 'assinatura' || !e.fecho ? '' : e.fecho + '\n') + sig;
+    return (m.fecho === 'assinatura' || !e.fecho ? '' : e.fecho + (sig.indexOf('\n') >= 0 ? '\n\n' : '\n')) + sig;
   }
   function completa(m) { var a = assinatura(m); return corpo(m) + (a ? '\n\n' + a : ''); }
   function tokens(t) {
@@ -142,7 +143,9 @@
   }
   function desenhar() {
     if (!D) return;
-    document.documentElement.style.setProperty('--cor', emp().cor || ctx.cfg.cor);
+    var marca = Plataforma.marcas[empresa];
+    document.documentElement.style.setProperty('--cor', (marca && marca.cor) || ctx.cfg.cor);
+    $('#ca-banner').innerHTML = Plataforma.banner(empresa);
     $('#ca-empresas').innerHTML = Object.keys(D.empresas).map(function (k) { return '<button type="button" data-emp="' + k + '" aria-pressed="' + (k === empresa) + '">' + esc(nomeEmp(k)) + '</button>'; }).join('');
     var sel = $('#ca-saudsel'); sel.value = saudPref(); var h = new Date().getHours(); sel.options[0].textContent = 'Automática (' + (h < 12 ? 'bom dia' : h < 18 ? 'boa tarde' : 'boa noite') + ')';
     desenharNav(); desenharTop(); desenharLista(); desenharCampos();
@@ -393,8 +396,7 @@
         return '<div class="ca-adm-item" data-k="' + k + '"><strong>' + esc(e.nome) + '</strong>' +
           '<label class="p-campo">Abertura<input data-c="abertura" value="' + esc(e.abertura || '') + '"></label>' +
           '<label class="p-campo">Frase de fechamento<input data-c="fecho" value="' + esc(e.fecho || '') + '"></label>' +
-          '<label class="p-campo">Assinatura<textarea data-c="assinatura" style="min-height:80px">' + esc(e.assinatura || '') + '</textarea></label>' +
-          '<label class="p-campo">Cor<input type="color" data-c="cor" value="' + esc(e.cor || '#2f4fa8') + '" style="width:70px;padding:2px"></label></div>';
+          '<label class="p-campo">Assinatura<textarea data-c="assinatura" style="min-height:96px">' + esc(e.assinatura || '') + '</textarea></label></div>';
       }).join('') + '<div class="p-linha"><button class="btn btn-primario" type="button" id="ca-emp-salvar">Salvar empresas</button></div>';
     $('#ca-emp-salvar', box).onclick = async function () {
       var b = this, mud = {}; b.disabled = true;

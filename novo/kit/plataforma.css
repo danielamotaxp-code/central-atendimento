@@ -136,3 +136,13 @@ a { color: var(--cor-forte); }
 @media (prefers-reduced-motion: reduce) { .p-spinner { animation-duration: 2.4s; } }
 @media (max-width: 640px) { .p-topo { padding: 10px 14px; } .p-usuario .btn-link { padding: 6px 5px; } }
 .p-check input { width: 18px !important; flex: none; padding: 0; }
+
+/* banner de cada empresa (WeGen verde, SmartBen azul, WattWise rosa) */
+.p-banner { position: relative; overflow: hidden; border-radius: 14px; min-height: 132px; color: #fff; display: flex; align-items: center; isolation: isolate; box-shadow: 0 10px 30px color-mix(in srgb, var(--marca) 28%, transparent); }
+.p-banner-arte { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; }
+.p-banner-texto { padding: 20px 24px; display: grid; gap: 4px; max-width: min(62%, 560px); text-shadow: 0 1px 2px rgba(0, 0, 0, .18); }
+.p-banner-texto strong { font-size: clamp(1.6rem, 3.2vw, 2.2rem); line-height: 1.05; letter-spacing: -.02em; font-weight: 800; }
+.p-banner-texto > span { font-size: .95rem; opacity: .95; font-weight: 500; }
+.p-banner-zap { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.p-banner-zap span { background: rgba(255, 255, 255, .2); border: 1px solid rgba(255, 255, 255, .35); border-radius: 999px; padding: 3px 10px; font-size: .8rem; font-weight: 600; text-shadow: none; backdrop-filter: blur(2px); }
+@media (max-width: 640px) { .p-banner-texto { max-width: 100%; padding: 16px 18px; } .p-banner { min-height: 150px; } .p-banner::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, color-mix(in srgb, var(--marca) 70%, transparent), transparent 85%); } }

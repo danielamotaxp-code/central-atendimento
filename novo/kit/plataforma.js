@@ -573,5 +573,36 @@
     return ctx;
   }
 
-  global.Plataforma = { iniciar: iniciar, versao: VERSAO_KIT, util: { esc: esc, slug: slug } };
+  /* ======================= identidade de cada empresa ======================= */
+  /** Cores e dados de cada empresa, usados por todas as plataformas. */
+  var MARCAS = {
+    wegen: { nome: 'WeGen', cor: '#1e874b', cor2: '#8fd16a', ceu: '#d9f2c7', frase: 'Cooperativa de energia solar · desconto na conta de luz da Cemig', whatsapp: ['(31) 9718-4014', '(31) 7160-1581'] },
+    smartben: { nome: 'SmartBen', cor: '#1d5fc2', cor2: '#5cc2f2', ceu: '#d4ecfb', frase: 'Cooperativa de energia solar · desconto na conta de luz da Cemig', whatsapp: ['(31) 9775-6674'] },
+    wattwise: { nome: 'WattWise', cor: '#d23c80', cor2: '#ffa2c8', ceu: '#fde0ec', frase: 'Cooperativa de energia solar · desconto na conta de luz da Cemig', whatsapp: ['(31) 99712-6777'] }
+  };
+  /** Ilustração original: sol, campo e placas solares, na cor da empresa. */
+  function ilustracao(m) {
+    var id = 'g' + Math.random().toString(36).slice(2, 8), raios = '';
+    for (var i = 0; i < 12; i++) { var a = i * Math.PI / 6; raios += '<line x1="' + (1030 + Math.cos(a) * 58).toFixed(1) + '" y1="' + (62 + Math.sin(a) * 58).toFixed(1) + '" x2="' + (1030 + Math.cos(a) * 80).toFixed(1) + '" y2="' + (62 + Math.sin(a) * 80).toFixed(1) + '"/>'; }
+    var placas = '';
+    for (var p = 0; p < 6; p++) { var x = 690 + p * 72, y = 150 - p * 4; placas += '<g transform="translate(' + x + ' ' + y + ')"><path d="M0 0 L56 0 L66 -26 L10 -26 Z" fill="#14324d" opacity=".82"/><path d="M5 -13 L61 -13 M19 0 L28 -26 M37 0 L47 -26" stroke="#9fd3ff" stroke-width="1.2" opacity=".55"/><path d="M30 0 L30 14" stroke="#14324d" stroke-width="3" opacity=".7"/></g>'; }
+    return '<svg class="p-banner-arte" viewBox="0 0 1200 200" preserveAspectRatio="xMaxYMid slice" aria-hidden="true">' +
+      '<defs><linearGradient id="' + id + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + m.cor + '"/><stop offset="1" stop-color="' + m.cor2 + '"/></linearGradient>' +
+      '<radialGradient id="' + id + 's"><stop offset="0" stop-color="#fff6c9"/><stop offset="1" stop-color="#ffc94a"/></radialGradient></defs>' +
+      '<rect width="1200" height="200" fill="url(#' + id + ')"/>' +
+      '<g stroke="#ffe08a" stroke-width="5" stroke-linecap="round" opacity=".75">' + raios + '</g><circle cx="1030" cy="62" r="44" fill="url(#' + id + 's)"/>' +
+      '<path d="M0 170 C 220 120 420 190 640 150 S 1000 120 1200 160 L1200 200 L0 200 Z" fill="#fff" opacity=".16"/>' +
+      '<path d="M560 200 C 700 150 900 140 1200 175 L1200 200 Z" fill="' + m.ceu + '" opacity=".45"/>' + placas +
+      '<path d="M0 200 C 300 170 700 205 1200 185 L1200 200 Z" fill="#fff" opacity=".22"/></svg>';
+  }
+  /** Banner da empresa (HTML). opcoes: { titulo, subtitulo, whatsapp: true|false } */
+  function banner(chave, opcoes) {
+    var m = MARCAS[chave]; opcoes = opcoes || {};
+    if (!m) return '';
+    var zap = opcoes.whatsapp === false ? '' : '<div class="p-banner-zap">' + m.whatsapp.map(function (n) { return '<span>WhatsApp ' + esc(n) + '</span>'; }).join('') + '</div>';
+    return '<section class="p-banner" style="--marca:' + m.cor + '" aria-label="' + esc(m.nome) + '">' + ilustracao(m) +
+      '<div class="p-banner-texto"><strong>' + esc(opcoes.titulo || m.nome) + '</strong><span>' + esc(opcoes.subtitulo || m.frase) + '</span>' + zap + '</div></section>';
+  }
+
+  global.Plataforma = { iniciar: iniciar, versao: VERSAO_KIT, marcas: MARCAS, banner: banner, util: { esc: esc, slug: slug } };
 })(window);
