@@ -8,8 +8,11 @@
 (function () {
   'use strict';
 
-  var ARQ = 'data/mensagens.json';
-  var SETORES = { financeiro: 'Financeiro', juridico: 'Jurídico' };
+  /* A mesma página serve a Central de Atendimento e o Comercial WattWise (window.CA_CONFIG). */
+  var CFG = Object.assign({ id: 'central-atendimento', moduloId: 'atendimento', nome: 'Central de Atendimento', subtitulo: 'WeGen · SmartBen · WattWise',
+    arquivo: 'data/mensagens.json', setores: ['financeiro', 'juridico'], setorPadrao: 'financeiro', migrarAntigas: true }, window.CA_CONFIG || {});
+  var ARQ = CFG.arquivo;
+  var SETORES = { financeiro: 'Financeiro', juridico: 'Jurídico', comercial: 'Comercial' };
   var EMPRESAS_PADRAO = ['wegen', 'smartben', 'wattwise'];
   var esc = Plataforma.util.esc;
 
@@ -25,10 +28,10 @@
 
   /* ======================= partida ======================= */
   Plataforma.iniciar({
-    id: 'central-atendimento',
-    moduloId: 'atendimento', // página do portal único
-    nome: 'Central de Atendimento',
-    subtitulo: 'WeGen · SmartBen · WattWise',
+    id: CFG.id,
+    moduloId: CFG.moduloId, // página do portal único
+    nome: CFG.nome,
+    subtitulo: CFG.subtitulo,
     letra: 'A',
     cor: '#2f4fa8',
     repoSite: 'danielamotaxp-code/central-atendimento',
@@ -48,7 +51,7 @@
       { titulo: 'Abertura e assinatura de cada empresa', desenhar: admEmpresas },
       { titulo: 'Mensagens excluídas', desenhar: admLixeira }
     ],
-    aoEntrar: async function (c) { ctx = c; montar(); await carregar(); verificarAlteracoesAntigas(); },
+    aoEntrar: async function (c) { ctx = c; montar(); await carregar(); if (CFG.migrarAntigas) verificarAlteracoesAntigas(); },
     aoMudarPreferencias: function () { if (D) desenhar(); },
     aoSair: function () { D = null; abertas.clear(); valores = {}; }
   });
@@ -61,8 +64,8 @@
       D = normalizarDados(d); carregadoEm = Date.now();
       if (!silencioso) {
         usos = G('usos', {}); opcOff = G('opc', {}); semSaud = new Set(G('semsaud', []));
-        try { valores = JSON.parse(sessionStorage.getItem('plat:central-atendimento:valores') || '{}') || {}; } catch (e) { valores = {}; }
-        var p = prefs().empresa || G('empresa', 'wegen'); empresa = D.empresas[p] ? p : 'wegen';
+        try { valores = JSON.parse(sessionStorage.getItem('plat:' + CFG.id + ':valores') || '{}') || {}; } catch (e) { valores = {}; }
+        var p = prefs().empresa || G('empresa', 'wegen'); empresa = D.empresas[p] ? p : Object.keys(D.empresas)[0];
       }
       desenhar();
     } catch (e) { $('#ca-etapas').innerHTML = '<div class="ca-vazio">Não foi possível carregar as mensagens: ' + esc(e.message) + '</div>'; }
@@ -85,7 +88,7 @@
     ctx.conteudo().innerHTML =
       '<div class="ca-barra"><div class="p-seg" id="ca-empresas" role="group" aria-label="Empresa"></div>' +
       '<label class="ca-saud">Saudação <select id="ca-saudsel"><option value="auto">Automática</option><option>Bom dia</option><option>Boa tarde</option><option>Boa noite</option></select></label>' +
-      '<div class="ca-busca"><input id="ca-q" type="search" placeholder="Buscar mensagem (ex.: protesto, distrato, saldo)" aria-label="Buscar mensagem"></div>' +
+      '<div class="ca-busca"><input id="ca-q" type="search" placeholder="' + esc(CFG.exemploBusca || 'Buscar mensagem (ex.: protesto, distrato, saldo)') + '" aria-label="Buscar mensagem"></div>' +
       '<button class="btn btn-peq btn-primario" id="ca-nova">Nova mensagem</button><button class="btn btn-peq" id="ca-atualizar" title="Buscar alterações feitas pela equipe">Atualizar</button></div>' +
       '<div class="ca-wrap"><nav class="ca-nav" id="ca-nav" aria-label="Etapas do atendimento"></nav><main class="ca-main">' +
         '<div id="ca-banner"></div>' +
@@ -147,6 +150,7 @@
     document.documentElement.style.setProperty('--cor', (marca && marca.cor) || ctx.cfg.cor);
     $('#ca-banner').innerHTML = Plataforma.banner(empresa);
     ctx.marca([empresa]);
+    $('#ca-empresas').hidden = Object.keys(D.empresas).length < 2;
     $('#ca-empresas').innerHTML = Object.keys(D.empresas).map(function (k) { return '<button type="button" data-emp="' + k + '" aria-pressed="' + (k === empresa) + '">' + esc(nomeEmp(k)) + '</button>'; }).join('');
     var sel = $('#ca-saudsel'); sel.value = saudPref(); var h = new Date().getHours(); sel.options[0].textContent = 'Automática (' + (h < 12 ? 'bom dia' : h < 18 ? 'boa tarde' : 'boa noite') + ')';
     desenharNav(); desenharTop(); desenharLista(); desenharCampos();
@@ -165,7 +169,7 @@
   }
   function cartao(m) {
     var aberta = abertas.has(m.id), es = m.empresas || [], tag;
-    tag = es.length === Object.keys(D.empresas).length ? '<span class="ca-tag">Todas as empresas</span>' : '<span class="ca-tag so">' + (es.length === 1 ? 'Só ' : '') + es.map(nomeEmp).map(esc).join(' e ') + '</span>';
+    tag = Object.keys(D.empresas).length < 2 ? '' : es.length === Object.keys(D.empresas).length ? '<span class="ca-tag">Todas as empresas</span>' : '<span class="ca-tag so">' + (es.length === 1 ? 'Só ' : '') + es.map(nomeEmp).map(esc).join(' e ') + '</span>';
     var corpoH = '';
     if (aberta) {
       var falta = campos(corpo(m)).filter(function (f) { return !valores[f]; });
@@ -210,7 +214,7 @@
       '<div class="linha"><label class="p-campo">Etapa do atendimento<select name="etapa">' + D.etapas.map(function (e) {
         var so = (e.empresas || EMPRESAS_PADRAO).length < Object.keys(D.empresas).length ? ' (' + (e.empresas || []).map(nomeEmp).join(', ') + ')' : '';
         return '<option value="' + esc(e.k) + '"' + (e.k === (m.etapa || (etapasDaEmpresa()[0] || {}).k) ? ' selected' : '') + '>' + esc(e.t + so) + '</option>'; }).join('') + '</select></label>' +
-      '<label class="p-campo">Assinatura<select name="setor"><option value="financeiro"' + (m.setor === 'financeiro' || !m.setor ? ' selected' : '') + '>Financeiro</option><option value="juridico"' + (m.setor === 'juridico' ? ' selected' : '') + '>Jurídico</option><option value="nenhum"' + (m.setor === 'nenhum' ? ' selected' : '') + '>Sem assinatura</option></select></label>' +
+      '<label class="p-campo">Assinatura<select name="setor">' + CFG.setores.concat(m.setor && CFG.setores.indexOf(m.setor) < 0 && SETORES[m.setor] ? [m.setor] : []).map(function (k) { return '<option value="' + k + '"' + ((m.setor || CFG.setorPadrao) === k ? ' selected' : '') + '>' + SETORES[k] + '</option>'; }).join('') + '<option value="nenhum"' + (m.setor === 'nenhum' ? ' selected' : '') + '>Sem assinatura</option></select></label>' +
       '<label class="p-campo">Fechamento<select name="fecho"><option value="completo"' + (m.fecho !== 'assinatura' ? ' selected' : '') + '>Frase de fechamento da empresa + assinatura</option><option value="assinatura"' + (m.fecho === 'assinatura' ? ' selected' : '') + '>Só a assinatura</option></select></label>' +
       '<label class="p-campo">Posição na etapa<input name="ordem" type="number" min="1" step="1" value="' + esc(m.ordem != null && m.ordem < 900 ? m.ordem : '') + '" placeholder="No fim"></label></div>' +
       '<label class="p-campo">Texto da mensagem<textarea name="texto" required placeholder="Use [Nome], [valor], [protocolo] etc. para os campos que mudam a cada cliente. {saudacao} vira bom dia/boa tarde; {atendente} vira o seu nome.">' + esc(m.texto || '') + '</textarea></label>' +
@@ -319,7 +323,7 @@
     if (r.empresas.indexOf(empresa) < 0) { empresa = r.empresas[0]; S('empresa', empresa); }
     desenhar(); piscar(novoId); ctx.aviso(id ? 'Alteração salva para toda a equipe.' : 'Mensagem adicionada para toda a equipe.');
   });
-  function guardarValores() { try { sessionStorage.setItem('plat:central-atendimento:valores', JSON.stringify(valores)); } catch (e) { /* sem armazenamento */ } }
+  function guardarValores() { try { sessionStorage.setItem('plat:' + CFG.id + ':valores', JSON.stringify(valores)); } catch (e) { /* sem armazenamento */ } }
   async function copiar(t) {
     try { await navigator.clipboard.writeText(t); return true; }
     catch (e) { var ta = document.createElement('textarea'); ta.value = t; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); var ok = false; try { ok = document.execCommand('copy'); } catch (x) { /* nada */ } ta.remove(); return ok; }
