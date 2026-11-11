@@ -68,8 +68,8 @@
 .ca-adm-item .p-linha label { font-size: .85rem; display: flex; gap: 4px; align-items: center; }
 
 @media (max-width: 800px) {
-  /* tela dividida: a barra com as empresas continua presa no topo ao rolar, mais compacta */
-  .ca-barra { position: sticky; top: 0; padding: 8px 12px; gap: 8px 10px; box-shadow: 0 2px 6px rgba(12, 31, 69, .06); }
+  /* tela dividida: barra mais compacta */
+  .ca-barra { padding: 8px 12px; gap: 8px 10px; }
   .ca-barra .ca-saud { font-size: .85rem; }
   .ca-barra .ca-busca { flex: 1 1 100%; order: 5; }
   .ca-wrap { grid-template-columns: minmax(0, 1fr); gap: 16px; }
@@ -85,3 +85,6 @@ html.p-modulo .ca-nav { top: 72px; }
 .ca-navlabel { font-size: .8rem; font-weight: 600; }
 .ca-tag { font-size: .76rem; font-weight: 600; }
 .ca-etapa h2 { font-family: var(--f-larga); font-stretch: 112%; font-weight: 600; }
+
+/* a barra das empresas fica no topo da página e rola junto (não fica presa na tela) */
+.ca-barra, html.p-modulo .ca-barra { position: static; }
