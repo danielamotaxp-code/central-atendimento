@@ -31,6 +31,62 @@
       "iv": "SAVAGOf/RGBbt1c9",
       "chave": "/49uuEA4A+jtGgRadujy4n8KRR4kotm9IFmmvZlX/YvlRj31aUkWmb1ASt4Wde7l",
       "senhaPadrao": true
+    },
+    "laura": {
+      "nome": "Laura",
+      "papel": "usuario",
+      "salt": "hJZVi4A/PULVnBM+9VsLjw==",
+      "iv": "VeymreOTWjEau58j",
+      "chave": "pCUz4cktwyVb0w/eD3sICGKcrqPApTyLwsIPXsiUVPmaHd1FZ6e72kUj/7t/E/4S",
+      "senhaPadrao": true
+    },
+    "guilherme": {
+      "nome": "Guilherme",
+      "papel": "usuario",
+      "salt": "VnhCYmIqJ+tlAL5w2jCz9Q==",
+      "iv": "EpCEE6NaH1tlOrdp",
+      "chave": "5TBQkqkJlZbU4pZ0rzAGdgPjP6Uca2JFpg1WgxeYsnfDYYuMx68vWsy4USCbMIpx",
+      "senhaPadrao": true
+    },
+    "ytala": {
+      "nome": "Ytala",
+      "papel": "usuario",
+      "salt": "/XHKqeyXJNiFls9g+1PffQ==",
+      "iv": "LNHKvrqqULhH6BDC",
+      "chave": "UcGfHqinBREKtd/nt9eKq9XdaGJV0wRb91rSxWcSwQhw8gUTejUVDJJxpdRo8PqK",
+      "senhaPadrao": true
+    },
+    "pedro": {
+      "nome": "Pedro",
+      "papel": "usuario",
+      "salt": "vr8fjxbRnlBxj979Lv3/mQ==",
+      "iv": "9qjEg6rI8037Ny5Z",
+      "chave": "Nm5Sx4GENmIAxsHnOuTsXEkjf3Y+Db0PpRiQoj+g0VZE7yNYnKAWrOKujTK4/DQJ",
+      "senhaPadrao": true
+    },
+    "gabriela": {
+      "nome": "Gabriela",
+      "papel": "usuario",
+      "salt": "TqroCbrglKkosKmameS/KA==",
+      "iv": "oHpvkxidehgs4N5O",
+      "chave": "r38odOZrZKCitZW/aOAIINXFaqn18ZO04xCyGISEBEgbtbNc+ROX62ZeWYL1ge67",
+      "senhaPadrao": true
+    },
+    "gustavo": {
+      "nome": "Gustavo",
+      "papel": "usuario",
+      "salt": "4SAN/brAsUDf9LXhdo+0ag==",
+      "iv": "G1WQmlh6888NXS+O",
+      "chave": "zRRRxvE53cPGB2R6wWIm2FugfJaYa2iEBoMv2+FCy8GMqfg/D0sSKbNauSyEvD/g",
+      "senhaPadrao": true
+    },
+    "joao": {
+      "nome": "João",
+      "papel": "usuario",
+      "salt": "poVcpM/8TIu2PBoK4RVvMw==",
+      "iv": "Gp+kBDFHyBM1WbB6",
+      "chave": "ZjGPMm/vbVDY4s8nPubJyucIGsGT0SAjlcT3V44nCBAt8PmtJ7hyC2Pcdr+YJ1SV",
+      "senhaPadrao": true
     }
   },
   "token": {
@@ -39,5 +95,5 @@
   },
   "versao": 2,
   "plataforma": "plataforma",
-  "atualizadoEm": "2026-11-10T22:59:52.750Z"
+  "atualizadoEm": "2026-11-11T12:14:47.560Z"
 }
