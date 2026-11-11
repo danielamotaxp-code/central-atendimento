@@ -523,3 +523,25 @@ a.btn-link { text-decoration: none; }
 .p-mod-topo .btn.p-planilha-btn, .p-mod-topo.colorido .btn.p-planilha-btn { background: #eef7f1; border-color: #9fd0b2; color: #14532d; }
 .p-mod-topo .btn.p-planilha-btn:hover, .p-mod-topo.colorido .btn.p-planilha-btn:hover { background: #e0f1e7; border-color: #1e874b; }
 .p-mod-topo .p-faixa-marcadagua { right: auto; left: 52%; }
+
+/* ===== "Antes de começar": planilha a preencher, em destaque no início da página ===== */
+.p-passo1 { padding: 16px 28px 0; background: #f6f8fb; }
+.p-passo1-cartao { display: flex; align-items: center; gap: 16px; padding: 16px 20px; border-radius: 14px; background: linear-gradient(100deg, #eaf6ef, #f4fbf7 70%); border: 1.5px solid #9fd0b2; box-shadow: 0 4px 14px rgba(20, 83, 45, .08); }
+.p-passo1-cartao + .p-passo1-cartao { margin-top: 10px; }
+.p-passo1-icone { flex: none; width: 48px; height: 48px; border-radius: 12px; background: #fff; display: grid; place-items: center; border: 1px solid #cfe6d8; }
+.p-passo1-icone svg { width: 28px; height: 28px; }
+.p-passo1-texto { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.p-passo1-texto small { font-size: .76rem; font-weight: 700; color: #1e874b; }
+.p-passo1-texto strong { font-size: 1.08rem; color: #0c1f45; line-height: 1.25; }
+.p-passo1-texto span { font-size: .88rem; color: #3f5468; }
+.p-passo1-acoes { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.p-passo1 .p-passo1-btn { display: inline-flex; align-items: center; gap: 8px; background: #1e874b; border-color: #1e874b; color: #fff; font-weight: 700; padding: 10px 18px; text-decoration: none; white-space: nowrap; }
+.p-passo1 .p-passo1-btn:hover { background: #166a3a; border-color: #166a3a; }
+.p-passo1 .p-passo1-btn svg rect { fill: #fff; } .p-passo1 .p-passo1-btn svg path { stroke: #1e874b; }
+.p-passo1-falta { font-size: .85rem; color: #8a5a00; }
+@media (max-width: 760px) {
+  .p-passo1 { padding: 10px 12px 0; }
+  .p-passo1-cartao { flex-wrap: wrap; padding: 12px 14px; }
+  .p-passo1-acoes { width: 100%; align-items: stretch; }
+  .p-passo1 .p-passo1-btn { justify-content: center; }
+}

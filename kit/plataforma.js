@@ -239,7 +239,7 @@
         '<div class="p-lateral-pe"><div class="p-eu"><span class="p-avatar" id="p-avatar" aria-hidden="true"></span><span class="p-nome" id="p-nome"></span></div><button class="btn-link" id="p-btn-conta">Minha conta</button><button class="btn-link" id="p-btn-admin" hidden>Administração</button><a class="btn-link" href="#ajuda" data-mod="ajuda">Ajuda</a><button class="btn-link" id="p-btn-sair">Sair</button>' +
         '<p class="p-versao">' + esc(cfg.rodape || '') + '</p></div></aside>' +
         '<div class="p-veu-menu" id="p-veu-menu" hidden></div><main class="p-principal"><header class="p-mod-topo" id="p-mod-topo"><button class="btn btn-peq p-menu-btn" id="p-menu-btn" type="button" aria-label="Abrir menu">☰</button><div class="p-mod-titulo" id="p-mod-titulo"></div><div class="p-mod-acoes" id="p-mod-acoes"></div></header>' +
-        '<nav class="p-abas" id="p-abas" hidden></nav><div class="p-faixas" id="p-faixas"></div><div id="p-conteudo" class="p-portal-conteudo"></div></main></div>' :
+        '<nav class="p-abas" id="p-abas" hidden></nav><div class="p-faixas" id="p-faixas"></div><section class="p-passo1" id="p-passo1" hidden></section><div id="p-conteudo" class="p-portal-conteudo"></div></main></div>' :
       '<div id="p-tela-app" hidden><header class="p-topo">' + marcaHTML() +
         '<div class="p-usuario"><span class="p-nome" id="p-nome"></span><button class="btn-link" id="p-btn-conta">Minha conta</button><button class="btn-link" id="p-btn-admin" hidden>Administração</button><button class="btn-link" id="p-btn-sair">Sair</button></div></header>' +
         '<nav class="p-abas" id="p-abas" role="tablist" hidden></nav><div class="p-faixas" id="p-faixas"></div><div id="p-conteudo"></div></div>') +
@@ -497,7 +497,7 @@
     }
     function topoModulo(m, titulo, sub) {
       var t = $('#p-mod-titulo'), topo = $('#p-mod-topo');
-      if (!m) { var idt = titulo === 'Ajuda' ? 'ajuda' : 'inicio'; t.innerHTML = faixaTitulo(idt, titulo || 'Início', sub || cfg.subtitulo || '', null); topo.dataset.area = idt; topo.style.setProperty('--linha', '#1d4f9a'); topo.style.setProperty('--area', '#1d4f9a'); topo.classList.remove('colorido'); $('#p-mod-acoes').innerHTML = ''; document.title = cfg.nome; return; }
+      if (!m) { var idt = titulo === 'Ajuda' ? 'ajuda' : 'inicio'; t.innerHTML = faixaTitulo(idt, titulo || 'Início', sub || cfg.subtitulo || '', null); topo.dataset.area = idt; topo.style.setProperty('--linha', '#1d4f9a'); topo.style.setProperty('--area', '#1d4f9a'); topo.classList.remove('colorido'); $('#p-mod-acoes').innerHTML = ''; desenharPasso1(null); document.title = cfg.nome; return; }
       var ks = m.marcasAtuais || m.marcas, cores = ks.map(function (k) { return MARCAS[k].cor; });
       document.documentElement.style.setProperty('--cor', cores[0]);
       topo.classList.add('colorido'); topo.dataset.area = m.id;
@@ -515,12 +515,25 @@
       return carregandoLinks;
     }
     var ICONE_PLANILHA = '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><rect x="4" y="2.5" width="16" height="19" rx="2.2" fill="#1e874b"/><path d="M7.5 9h9M7.5 12.5h9M7.5 16h9M12 9v7" stroke="#fff" stroke-width="1.5"/></svg>';
-    function botoesPlanilhas(m) {
-      return (m && m.planilhas || []).map(function (p) {
-        var l = links && links[p.id];
-        if (l && l.url) return '<span class="p-planilha"><a class="btn btn-peq p-planilha-btn" href="' + esc(l.url) + '" target="_blank" rel="noopener" title="' + esc(p.dica || 'Abre a planilha no Google') + '">' + ICONE_PLANILHA + '<span>Planilha ' + esc(p.nome) + '</span></a>' + (ehAdmin() ? '<button class="p-planilha-trocar" type="button" data-planilha="' + esc(p.id) + '" title="Trocar o link (só administradora)">Trocar link</button>' : '') + '</span>';
-        return ehAdmin() ? '<button class="btn btn-peq p-planilha-btn" type="button" data-planilha="' + esc(p.id) + '">' + ICONE_PLANILHA + '<span>Vincular planilha ' + esc(p.nome) + '</span></button>' : '';
+    // Destaque no início da página: preencher a planilha antes de usar a plataforma.
+    function desenharPasso1(m) {
+      var box = $('#p-passo1'); if (!box) return;
+      var ps = (m && m.planilhas) || [];
+      if (!ps.length) { box.hidden = true; box.innerHTML = ''; return; }
+      box.hidden = false;
+      box.innerHTML = ps.map(function (p) {
+        var l = links && links[p.id], tem = !!(l && l.url);
+        return '<div class="p-passo1-cartao">' +
+          '<span class="p-passo1-icone">' + ICONE_PLANILHA + '</span>' +
+          '<div class="p-passo1-texto"><small>Antes de começar</small><strong>Preencha a planilha ' + esc(p.nome) + '</strong>' +
+          '<span>' + esc(p.dica || 'Registre a solicitação na planilha primeiro e depois use esta página.') + '</span></div>' +
+          '<div class="p-passo1-acoes">' +
+          (tem ? '<a class="btn p-passo1-btn" href="' + esc(l.url) + '" target="_blank" rel="noopener">' + ICONE_PLANILHA + 'Abrir planilha</a>'
+               : (links ? (ehAdmin() ? '<button class="btn p-passo1-btn" type="button" data-planilha="' + esc(p.id) + '">Vincular planilha</button>' : '<span class="p-passo1-falta">Link ainda não cadastrado. Avise a administradora.</span>') : '<span class="p-passo1-falta">Carregando…</span>')) +
+          (tem && ehAdmin() ? '<button class="p-planilha-trocar" type="button" data-planilha="' + esc(p.id) + '">Trocar link</button>' : '') +
+          '</div></div>';
       }).join('');
+      box.onclick = function (ev) { var pl = ev.target.closest('[data-planilha]'); if (pl) trocarLinkPlanilha(pl.dataset.planilha); };
     }
     async function trocarLinkPlanilha(id) {
       var m = cfg.modulos.find(function (x) { return (x.planilhas || []).some(function (p) { return p.id === id; }); });
@@ -538,10 +551,10 @@
     }
     function acoesModulo() {
       var a = apis[atual] || {}, box = $('#p-mod-acoes'), m = cfg.modulos.find(function (x) { return x.id === atual; });
-      box.innerHTML = botoesPlanilhas(m) + (a.preferencias ? '<button class="btn btn-peq" type="button" data-acao="pref">Minhas preferências</button>' : '') + (a.configuracoes ? '<button class="btn btn-peq" type="button" data-acao="conf">Configurações da página</button>' : '');
+      desenharPasso1(m);
+      box.innerHTML = (a.preferencias ? '<button class="btn btn-peq" type="button" data-acao="pref">Minhas preferências</button>' : '') + (a.configuracoes ? '<button class="btn btn-peq" type="button" data-acao="conf">Configurações da página</button>' : '');
       if (m && m.planilhas && !links) carregarLinks().then(function () { if (atual === m.id) acoesModulo(); });
       box.onclick = function (ev) {
-        var pl = ev.target.closest('[data-planilha]'); if (pl) return trocarLinkPlanilha(pl.dataset.planilha);
         var b = ev.target.closest('[data-acao]'); if (!b) return; (b.dataset.acao === 'pref' ? a.preferencias : a.configuracoes)();
       };
     }
