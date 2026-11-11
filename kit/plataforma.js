@@ -477,14 +477,33 @@
       }
       topoModulo(m); document.title = m.nome + ' · ' + cfg.nome;
     }
+    var ICONES = {
+      atendimento: '<path d="M4 5h16v11H10l-6 4z"/><path d="M8 9h8M8 12h5"/>',
+      comercial: '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5h6v2M3 13h18"/>',
+      cobranca: '<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6 9v.01M18 15v.01"/>',
+      faturas: '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h7"/>',
+      ouvidorias: '<path d="M3 10v4l3 .5L14 19V5L6 9.5z"/><path d="M18 9a4 4 0 010 6M7 15l1 5h3l-1-4"/>',
+      distratos: '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M10 12l5 5M15 12l-5 5"/>',
+      auditoria: '<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5M8.5 11h5M11 8.5v5"/>',
+      inicio: '<path d="M4 11l8-7 8 7v9H4z"/><path d="M10 20v-6h4v6"/>',
+      ajuda: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 015 .5c0 1.7-2.5 2-2.5 4M12 17v.01"/>'
+    };
+    function icone(id) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICONES[id] || ICONES.inicio) + '</svg>'; }
+    function faixaTitulo(id, nome, desc, ks) {
+      return '<span class="p-faixa-icone">' + icone(id) + '</span>' +
+        '<span class="p-faixa-texto"><small class="p-faixa-onde">Você está em</small><strong>' + esc(nome) + '</strong>' +
+        '<span class="p-faixa-desc">' + esc(desc || '') + (ks && ks.length ? ' ' + ks.map(function (k) { return '<span class="p-faixa-marca" style="--m:' + MARCAS[k].cor + '">' + esc(MARCAS[k].nome) + '</span>'; }).join('') : '') + '</span></span>' +
+        '<span class="p-faixa-marcadagua">' + icone(id) + '</span>';
+    }
     function topoModulo(m, titulo, sub) {
       var t = $('#p-mod-titulo'), topo = $('#p-mod-topo');
-      if (!m) { t.innerHTML = '<strong>' + esc(titulo || 'Início') + '</strong><small>' + esc(sub || cfg.subtitulo || '') + '</small>'; topo.style.removeProperty('--linha'); topo.classList.remove('colorido'); $('#p-mod-acoes').innerHTML = ''; document.title = cfg.nome; return; }
+      if (!m) { var idt = titulo === 'Ajuda' ? 'ajuda' : 'inicio'; t.innerHTML = faixaTitulo(idt, titulo || 'Início', sub || cfg.subtitulo || '', null); topo.dataset.area = idt; topo.style.setProperty('--linha', '#1d4f9a'); topo.style.setProperty('--area', '#1d4f9a'); topo.classList.remove('colorido'); $('#p-mod-acoes').innerHTML = ''; document.title = cfg.nome; return; }
       var ks = m.marcasAtuais || m.marcas, cores = ks.map(function (k) { return MARCAS[k].cor; });
       document.documentElement.style.setProperty('--cor', cores[0]);
-      topo.classList.add('colorido');
+      topo.classList.add('colorido'); topo.dataset.area = m.id;
       topo.style.setProperty('--linha', 'linear-gradient(90deg,' + (cores.length > 1 ? cores.join(',') : cores[0] + ',' + MARCAS[ks[0]].cor2) + ')');
-      t.innerHTML = '<strong>' + esc(m.nome) + '</strong><small>' + esc(m.descricao || '') + ' — ' + esc(nomesMarcas(ks)) + '</small>';
+      topo.style.setProperty('--area', cores[0]);
+      t.innerHTML = faixaTitulo(m.id, m.nome, m.descricao, ks);
       acoesModulo();
     }
     function acoesModulo() {

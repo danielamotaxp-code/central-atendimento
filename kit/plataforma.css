@@ -462,3 +462,50 @@ a.btn-link { text-decoration: none; }
 .p-mod-topo { background: #081631; }
 .p-lateral { background: #081631; border-right-color: #16294b; }
 @media (max-width: 860px) { .p-login-cena .p-palco::before { left: 82%; top: 120px; width: 240px; } }
+
+/* ===== dentro da plataforma: claro e profissional (o azul-marinho fica só na entrada) ===== */
+.p-lateral { background: #ffffff; border-right: 1px solid #e3e8f0; color: #0c1f45; }
+.p-lateral-topo { border-bottom-color: #e3e8f0; }
+.p-lateral .p-marca strong { color: #0c1f45; }
+.p-lateral .p-marca small, .p-menu-item small { color: #6b7a90; }
+.p-lateral .p-marca-logo { background: #0c1f45; color: #fff; }
+.p-menu-item { color: #1f2f4d; }
+.p-menu-item:hover { background: #f2f5fa; }
+.p-menu-item.ativo { background: #eaf1fb; color: #0c1f45; box-shadow: inset 3px 0 0 var(--cor); }
+.p-lateral-pe { border-top-color: #e3e8f0; }
+.p-lateral .p-nome { color: #0c1f45; }
+.p-lateral .btn-link { color: #4a5a73; }
+.p-lateral .btn-link:hover { color: #0c1f45; }
+.p-lateral .p-papel { background: #eaf1fb; color: #1d4f9a; }
+.p-lateral .p-versao { color: #8a97ab; }
+.p-avatar { background: #0c1f45; color: #fff; }
+.p-mod-topo { background: #ffffff; color: #0c1f45; border-bottom: 1px solid #e3e8f0; }
+.p-mod-topo .p-mod-titulo small { color: #6b7a90; opacity: 1; }
+.p-mod-topo .btn { background: #fff; border-color: #c9d4e5; color: #0c1f45; }
+.p-mod-topo .btn:hover { background: #f2f5fa; border-color: #0c1f45; }
+.p-portal-conteudo, .p-principal { background: #f6f8fb; }
+
+/* ===== faixa de título de cada área: deixa claro onde a pessoa está ===== */
+.p-mod-topo { min-height: 104px; padding: 18px 28px 20px; overflow: hidden; position: relative; }
+.p-mod-titulo { display: flex; align-items: center; gap: 18px; position: static; }
+.p-faixa-icone { flex: none; width: 58px; height: 58px; border-radius: 14px; display: grid; place-items: center; background: #0c1f45; color: #fff; position: relative; box-shadow: 0 6px 16px rgba(12, 31, 69, .18); }
+.p-faixa-icone::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: -3px; height: 4px; border-radius: 3px; background: var(--linha, #1d4f9a); }
+.p-faixa-icone svg { width: 30px; height: 30px; }
+.p-faixa-texto { display: flex; flex-direction: column; min-width: 0; }
+.p-mod-titulo .p-faixa-onde { font-size: .74rem; font-weight: 600; letter-spacing: .02em; color: var(--area, #1d4f9a); opacity: 1; margin-bottom: 2px; }
+.p-mod-titulo strong { font-family: "Archivo", "IBM Plex Sans", sans-serif; font-stretch: 125%; font-variation-settings: "wdth" 125; font-weight: 700; font-size: clamp(1.35rem, 2.4vw, 1.9rem); line-height: 1.1; color: #0c1f45; letter-spacing: -.01em; }
+.p-faixa-desc { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 6px; font-size: .86rem; color: #5a6a82; }
+.p-faixa-marca { display: inline-flex; align-items: center; gap: 5px; padding: 2px 9px 2px 7px; border-radius: 999px; font-size: .74rem; font-weight: 600; color: var(--m); background: color-mix(in srgb, var(--m) 10%, #fff); border: 1px solid color-mix(in srgb, var(--m) 28%, #fff); }
+.p-faixa-marca::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--m); }
+.p-faixa-marcadagua { position: absolute; right: 210px; top: 50%; transform: translateY(-50%) rotate(-8deg); width: 150px; height: 150px; color: var(--area, #1d4f9a); opacity: .07; pointer-events: none; }
+.p-faixa-marcadagua svg { width: 100%; height: 100%; stroke-width: 1.4; }
+.p-mod-topo { background: linear-gradient(100deg, #ffffff 55%, color-mix(in srgb, var(--area, #1d4f9a) 6%, #fff)); }
+.p-mod-topo::after { height: 4px; }
+.p-mod-acoes { position: relative; z-index: 1; }
+@media (max-width: 760px) {
+  .p-mod-topo { min-height: 84px; padding: 12px 14px 14px; }
+  .p-faixa-icone { width: 44px; height: 44px; border-radius: 11px; }
+  .p-faixa-icone svg { width: 24px; height: 24px; }
+  .p-faixa-marcadagua { display: none; }
+  .p-faixa-desc { font-size: .8rem; }
+}
