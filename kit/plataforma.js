@@ -703,6 +703,7 @@
       try {
         var pessoas = {};
         cfg.modulos.forEach(function (m) { (m.usuarios || []).forEach(function (n) { var l = slug(n); if (!cofre.usuarios[l]) pessoas[l] = n; }); });
+        (cfg.equipe || []).forEach(function (n) { var l = slug(n); if (!cofre.usuarios[l]) pessoas[l] = n; });
         var ls = Object.keys(pessoas); if (!ls.length) return;
         await carregarCofre(); var n = JSON.parse(JSON.stringify(cofre)), mestra = unb64(sessao.mestra);
         for (var i = 0; i < ls.length; i++) if (!n.usuarios[ls[i]]) n.usuarios[ls[i]] = await entradaUsuario(pessoas[ls[i]], 'usuario', SENHA_PADRAO, mestra, true);
@@ -714,6 +715,7 @@
       var box = $('#p-faltam'); if (!box) return;
       var pessoas = {};
       cfg.modulos.forEach(function (m) { (m.usuarios || []).forEach(function (n) { var l = slug(n); if (cofre.usuarios[l]) return; (pessoas[l] = pessoas[l] || { nome: n, modulos: [] }).modulos.push(m.id); }); });
+      (cfg.equipe || []).forEach(function (n) { var l = slug(n); if (!cofre.usuarios[l] && !pessoas[l]) pessoas[l] = { nome: n, modulos: [] }; });
       var ls = Object.keys(pessoas);
       if (!ls.length) { box.innerHTML = ''; return; }
       box.innerHTML = '<div class="p-faixa aviso" style="margin:0"><span style="flex:1 1 260px">Pessoas que usavam as plataformas antigas e ainda não estão aqui: <b>' + ls.map(function (l) { return esc(pessoas[l].nome); }).join(', ') + '</b>. Elas entram com a senha ' + SENHA_PADRAO + ' e veem todas as páginas.</span><button class="btn btn-peq btn-primario" type="button" id="p-incluir-faltam">Incluir todas</button></div>';
