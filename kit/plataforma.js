@@ -475,6 +475,9 @@
       if (!abertos[m.id]) {
         var f = document.createElement('iframe'); f.className = 'p-quadro'; f.title = m.nome; f.src = m.src + (m.src.indexOf('?') < 0 ? '?' : '&') + 'v=' + (cfg.versao || '1') + '.' + CARGA;
         f.setAttribute('allow', 'clipboard-read; clipboard-write'); $('#p-conteudo').appendChild(f); abertos[m.id] = f;
+        if (m.planilhas) (function (mm, ff) {
+          ff.addEventListener('load', function () { carregarLinks().then(function () { desenharPasso1(mm); }); var n = 0, t = setInterval(function () { desenharPasso1(mm); if (++n > 20) clearInterval(t); }, 500); });
+        })(m, f);
       }
       topoModulo(m); document.title = m.nome + ' · ' + cfg.nome;
     }
@@ -517,24 +520,50 @@
     }
     var ICONE_PLANILHA = '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><rect x="4" y="2.5" width="16" height="19" rx="2.2" fill="#1e874b"/><path d="M7.5 9h9M7.5 12.5h9M7.5 16h9M12 9v7" stroke="#fff" stroke-width="1.5"/></svg>';
     // Destaque no início da página: preencher a planilha antes de usar a plataforma.
-    function desenharPasso1(m) {
-      var box = $('#p-passo1'); if (!box) return;
-      var ps = (m && m.planilhas) || [];
-      if (!ps.length) { box.hidden = true; box.innerHTML = ''; return; }
-      box.hidden = false;
-      box.innerHTML = ps.map(function (p) {
+    // O quadro vai DENTRO da página (no começo do conteúdo), para rolar junto com ela e não ficar preso no topo.
+    var CSS_PASSO1 = '#p-passo1-emb{margin:0 0 18px;font-family:inherit}' +
+      '#p-passo1-emb .c{display:flex;align-items:center;gap:16px;padding:16px 20px;border-radius:14px;background:linear-gradient(100deg,#eaf6ef,#f4fbf7 70%);border:1.5px solid #9fd0b2;box-shadow:0 4px 14px rgba(20,83,45,.08)}' +
+      '#p-passo1-emb .c+.c{margin-top:10px}' +
+      '#p-passo1-emb .i{flex:none;width:48px;height:48px;border-radius:12px;background:#fff;display:grid;place-items:center;border:1px solid #cfe6d8}' +
+      '#p-passo1-emb .i svg{width:28px;height:28px}' +
+      '#p-passo1-emb .t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}' +
+      '#p-passo1-emb .t small{font-size:12px;font-weight:700;color:#1e874b}' +
+      '#p-passo1-emb .t strong{font-size:17px;color:#0c1f45;line-height:1.25}' +
+      '#p-passo1-emb .t span{font-size:14px;color:#3f5468}' +
+      '#p-passo1-emb .a{display:flex;flex-direction:column;align-items:flex-end;gap:4px}' +
+      '#p-passo1-emb .b{display:inline-flex;align-items:center;gap:8px;background:#1e874b;border:1px solid #1e874b;color:#fff;font-weight:700;padding:10px 18px;border-radius:9px;text-decoration:none;white-space:nowrap;cursor:pointer;font:inherit;font-weight:700}' +
+      '#p-passo1-emb .b:hover{background:#166a3a}' +
+      '#p-passo1-emb .b svg rect{fill:#fff}#p-passo1-emb .b svg path{stroke:#1e874b}' +
+      '#p-passo1-emb .x{background:none;border:0;padding:0;color:#6b7a90;font:inherit;font-size:12px;text-decoration:underline;cursor:pointer}' +
+      '#p-passo1-emb .f{font-size:13px;color:#8a5a00}' +
+      '@media (max-width:760px){#p-passo1-emb .c{flex-wrap:wrap}#p-passo1-emb .a{width:100%;align-items:stretch}#p-passo1-emb .b{justify-content:center}}';
+    function htmlPasso1(ps) {
+      return ps.map(function (p) {
         var l = links && links[p.id], tem = !!(l && l.url);
-        return '<div class="p-passo1-cartao">' +
-          '<span class="p-passo1-icone">' + ICONE_PLANILHA + '</span>' +
-          '<div class="p-passo1-texto"><small>Antes de começar</small><strong>Preencha a planilha ' + esc(p.nome) + '</strong>' +
-          '<span>' + esc(p.dica || 'Registre a solicitação na planilha primeiro e depois use esta página.') + '</span></div>' +
-          '<div class="p-passo1-acoes">' +
-          (tem ? '<a class="btn p-passo1-btn" href="' + esc(l.url) + '" target="_blank" rel="noopener">' + ICONE_PLANILHA + 'Abrir planilha</a>'
-               : (links ? (ehAdmin() ? '<button class="btn p-passo1-btn" type="button" data-planilha="' + esc(p.id) + '">Vincular planilha</button>' : '<span class="p-passo1-falta">Link ainda não cadastrado. Avise a administradora.</span>') : '<span class="p-passo1-falta">Carregando…</span>')) +
-          (tem && ehAdmin() ? '<button class="p-planilha-trocar" type="button" data-planilha="' + esc(p.id) + '">Trocar link</button>' : '') +
+        return '<div class="c"><span class="i">' + ICONE_PLANILHA + '</span>' +
+          '<div class="t"><small>Antes de começar</small><strong>Preencha a planilha ' + esc(p.nome) + '</strong><span>' + esc(p.dica || '') + '</span></div>' +
+          '<div class="a">' +
+          (tem ? '<a class="b" href="' + esc(l.url) + '" target="_blank" rel="noopener">' + ICONE_PLANILHA + 'Abrir planilha</a>'
+               : (links ? (ehAdmin() ? '<button class="b" type="button" data-planilha="' + esc(p.id) + '">Vincular planilha</button>' : '<span class="f">Link ainda não cadastrado. Avise a administradora.</span>') : '<span class="f">Carregando…</span>')) +
+          (tem && ehAdmin() ? '<button class="x" type="button" data-planilha="' + esc(p.id) + '">Trocar link</button>' : '') +
           '</div></div>';
       }).join('');
-      box.onclick = function (ev) { var pl = ev.target.closest('[data-planilha]'); if (pl) trocarLinkPlanilha(pl.dataset.planilha); };
+    }
+    function desenharPasso1(m) {
+      var fora = $('#p-passo1'); if (fora) { fora.hidden = true; fora.innerHTML = ''; }
+      if (!m || !m.planilhas || !m.planilhas.length) return;
+      var f = abertos[m.id]; if (!f) return;
+      var doc; try { doc = f.contentDocument; } catch (e) { return; }
+      if (!doc || !doc.body) return;
+      var alvo = (m.alvoPlanilha && doc.querySelector(m.alvoPlanilha)) || doc.body;
+      var el = doc.getElementById('p-passo1-emb');
+      if (!el) {
+        if (!doc.getElementById('p-passo1-css')) { var st = doc.createElement('style'); st.id = 'p-passo1-css'; st.textContent = CSS_PASSO1; doc.head.appendChild(st); }
+        el = doc.createElement('section'); el.id = 'p-passo1-emb';
+        el.addEventListener('click', function (ev) { var pl = ev.target.closest('[data-planilha]'); if (pl) trocarLinkPlanilha(pl.dataset.planilha); });
+      }
+      if (el.parentNode !== alvo || alvo.firstElementChild !== el) alvo.insertBefore(el, alvo.firstChild);
+      el.innerHTML = htmlPasso1(m.planilhas);
     }
     async function trocarLinkPlanilha(id) {
       var m = cfg.modulos.find(function (x) { return (x.planilhas || []).some(function (p) { return p.id === id; }); });

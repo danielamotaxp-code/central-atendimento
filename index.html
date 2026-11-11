@@ -10,11 +10,11 @@
   <link rel="icon" href="icone.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icone.svg">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="kit/plataforma.css?v=17">
+  <link rel="stylesheet" href="kit/plataforma.css?v=18">
 </head>
 <body>
   <div id="plataforma"></div>
-  <script src="kit/plataforma.js?v=17"></script>
+  <script src="kit/plataforma.js?v=18"></script>
   <script>
   /* Portal único: um login e um menu com todas as páginas.
      Cada página continua no próprio repositório; aqui só fica o acesso. */
@@ -37,7 +37,7 @@
       ],
       letra: 'P',
       cor: '#111111',
-      versao: '17',
+      versao: '18',
       repoSite: R + 'central-atendimento',
       cofre: 'cofre.json',
       repoDados: R + 'central-atendimento-dados',
@@ -60,9 +60,11 @@
           src: '/ouvidorias-cemig/app.html', repos: [R + 'ouvidorias-cemig-dados'], usuarios: ['Daniela', 'Paula', 'Pedro', 'Victor', 'Ytala'] },
         { id: 'distratos', nome: 'Central de Distratos', descricao: 'Termos de distrato a partir do D4Sign', marcas: ['wegen', 'smartben'],
           planilhas: [{ id: 'cancelamentos', nome: 'CANCELAMENTOS E AUDITORIAS', dica: 'Os termos de distrato usam os dados dessa planilha (empresa, opção e data da solicitação). Registre o cancelamento lá primeiro e depois use esta página.' }],
+          alvoPlanilha: '#telaApp',
           src: '/central-distratos/app.html', repos: [R + 'central-distratos', R + 'central-distratos-dados'], usuarios: ['Daniela', 'Paula'] },
         { id: 'auditoria', nome: 'Auditoria de Injeção', descricao: 'Injeção e consumo por instalação', marcas: ['wegen', 'smartben'],
           planilhas: [{ id: 'cancelamentos', nome: 'CANCELAMENTOS E AUDITORIAS', dica: 'A lista de auditorias vem dessa planilha. Registre a auditoria lá primeiro e depois use esta página.' }],
+          alvoPlanilha: '#app',
           src: '/auditoria-injecao/app.html', repos: [R + 'auditoria-dados'], usuarios: ['Daniela', 'Laura', 'Paula', 'Luis', 'Guilherme'] }
       ]
     });
