@@ -545,3 +545,5 @@ a.btn-link { text-decoration: none; }
   .p-passo1-acoes { width: 100%; align-items: stretch; }
   .p-passo1 .p-passo1-btn { justify-content: center; }
 }
+.p-faixa.info { background: #eaf1fb; color: #0c1f45; border: 1px solid #c4d6f0; }
+.p-faixa .p-atualizar { background: #0c1f45; border-color: #0c1f45; color: #fff; }
