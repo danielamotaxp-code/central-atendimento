@@ -3,10 +3,10 @@
     "daniela": {
       "nome": "Daniela",
       "papel": "admin",
-      "salt": "nAIC2ziY8x9WbVHcBmG++g==",
-      "iv": "nLs65rYn5olPV6YO",
-      "chave": "CXJdcabil7vGt6uWhgn/OgviGH/7A8ArTD24Fu/QvNOMSpvt0VaYtFyXkkgszXxd",
-      "senhaPadrao": true
+      "salt": "SAroJsXlE8b/iQaHtW4trg==",
+      "iv": "VQjLiFs4I3wC3v9U",
+      "chave": "YlwGPvCgyVB6MeTbFyeb2sag9CbNlJyOB4pK92sN3WyPqx1rBvguB4tc00x/HF0l",
+      "senhaPadrao": false
     },
     "paula": {
       "nome": "Paula",
@@ -95,5 +95,5 @@
   },
   "versao": 2,
   "plataforma": "plataforma",
-  "atualizadoEm": "2026-11-11T12:15:12.385Z"
+  "atualizadoEm": "2026-11-11T18:16:26.464Z"
 }
