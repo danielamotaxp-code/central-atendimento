@@ -88,3 +88,4 @@ html.p-modulo .ca-nav { top: 72px; }
 
 /* a barra das empresas fica no topo da página e rola junto (não fica presa na tela) */
 .ca-barra, html.p-modulo .ca-barra { position: static; }
+html.p-modulo .ca-nav { top: 12px; }
