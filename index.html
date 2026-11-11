@@ -4,12 +4,17 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="robots" content="noindex,nofollow">
-  <title>Plataforma WeGen · SmartBen · WattWise</title>
-  <link rel="stylesheet" href="kit/plataforma.css?v=5">
+  <title>Plataforma · WeGen, SmartBen e WattWise</title>
+  <meta name="description" content="Atendimento, cobrança, faturas, ouvidorias, distratos e auditoria das cooperativas de energia solar WeGen, SmartBen e WattWise.">
+  <meta name="theme-color" content="#1c2733">
+  <link rel="icon" href="icone.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icone.svg">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="kit/plataforma.css?v=6">
 </head>
 <body>
   <div id="plataforma"></div>
-  <script src="kit/plataforma.js?v=5"></script>
+  <script src="kit/plataforma.js?v=6"></script>
   <script>
   /* Portal único: um login e um menu com todas as páginas.
      Cada página continua no próprio repositório; aqui só fica o acesso. */
@@ -18,10 +23,19 @@
     Plataforma.iniciar({
       id: 'plataforma',
       nome: 'Plataforma',
-      subtitulo: 'WeGen · SmartBen · WattWise',
+      subtitulo: 'WeGen, SmartBen e WattWise',
+      tituloLogin: 'Plataforma de atendimento',
+      fraseLogin: 'Cooperativas de energia solar que dão desconto na conta de luz da Cemig. Atendimento, cobrança, faturas, ouvidorias, distratos e auditoria num só lugar.',
+      rodape: '© 2026 WeGen, SmartBen e WattWise · versão 1.0',
+      registroAcessos: 'registros/acessos',
+      novidades: [
+        ['10/11/2026', 'Plataforma única: um login, menu lateral e todas as páginas no mesmo lugar.'],
+        ['10/11/2026', 'Cobrança: a planilha de inadimplentes é atualizada direto no Google, pelo link.'],
+        ['10/11/2026', 'Central de Atendimento: mensagens da WattWise pelo documento de 16/04/26 e assinatura com WhatsApp em todas as empresas.']
+      ],
       letra: 'P',
       cor: '#3b4a5c',
-      versao: '5',
+      versao: '6',
       repoSite: R + 'central-atendimento',
       cofre: 'cofre.json',
       repoDados: R + 'central-atendimento-dados',

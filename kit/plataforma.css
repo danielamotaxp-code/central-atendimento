@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap");
 /* Plataforma — visual comum a todas as plataformas (padrão WattWise).
    Cada plataforma muda só o nome, a letra da marca e a cor de destaque (--cor). */
 :root {
@@ -5,11 +6,11 @@
   --cor-forte: color-mix(in srgb, var(--cor) 80%, #000);
   --cor-suave: color-mix(in srgb, var(--cor) 12%, var(--cartao));
   --cor-texto: #fff;
-  --fundo: #f2f4f7;
+  --fundo: #f4f6f8;
   --cartao: #ffffff;
   --afundado: #eef1f5;
   --borda: #dde3ea;
-  --texto: #1b2430;
+  --texto: #1c2733;
   --texto-2: #4d5b6b;
   --texto-3: #7a8796;
   --ok: #2e7d4f;
@@ -20,7 +21,7 @@
   --aviso-suave: #fff4d6;
   --raio: 10px;
   --sombra: 0 18px 50px rgba(20, 30, 50, .12);
-  --f: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --f: "IBM Plex Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
   --f-mono: ui-monospace, "Cascadia Mono", Menlo, monospace;
   color-scheme: light;
 }
@@ -182,7 +183,7 @@ a { color: var(--cor-forte); }
 .p-cartao:hover { transform: translateY(-2px); box-shadow: var(--sombra); border-color: var(--c1); }
 .p-cartao-faixa { position: absolute; inset: 0 0 auto; height: 6px; background: linear-gradient(90deg, var(--c1), var(--c2)); }
 .p-cartao strong { font-size: 1.05rem; }
-.p-cartao small { color: var(--c1); font-weight: 700; font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; }
+.p-cartao small { color: var(--c1); font-weight: 600; font-size: .82rem; margin-top: 4px; }
 .p-cartao .p-ajuda { font-size: .87rem; }
 .p-marcas-grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
 .p-marcas-grade .p-banner-texto { max-width: 78%; }
@@ -214,3 +215,67 @@ html.p-modulo .p-topo { display: none; }
   .p-login-marcas { position: static; }
   .p-login { align-content: start; }
 }
+
+/* ===== login dividido: painel das empresas + formulário ===== */
+.p-login-dividido { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(360px, .85fr); padding: 0; min-height: 100vh; min-height: 100dvh; place-items: stretch; }
+.p-login-dividido .p-login-card { align-self: center; justify-self: center; margin: 32px; box-shadow: none; border: 0; background: transparent; max-width: 360px; }
+.p-heroi { position: relative; overflow: hidden; background: #1c2733; color: #eef2f6; display: flex; align-items: flex-end; padding: 48px clamp(28px, 5vw, 72px); isolation: isolate; }
+.p-heroi-ceu { position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, #16202b 0%, #233446 62%, #2c4258 100%); }
+.p-sol { position: absolute; right: 13%; bottom: 41%; width: clamp(120px, 13vw, 180px); aspect-ratio: 1; border-radius: 50%;
+  background: radial-gradient(circle, #fff1c4 0 30%, #f7c74d 48%, #f2b636 56%, rgba(242, 182, 54, .28) 58%, rgba(242, 182, 54, 0) 74%); }
+.p-placas { position: absolute; left: -5%; right: -5%; bottom: -2%; height: 46%; transform: perspective(600px) rotateX(58deg); transform-origin: bottom;
+  background:
+    repeating-linear-gradient(90deg, rgba(160, 200, 240, .38) 0 2px, transparent 2px 64px),
+    repeating-linear-gradient(0deg, rgba(160, 200, 240, .38) 0 2px, transparent 2px 40px),
+    linear-gradient(180deg, #23476b, #10243a); box-shadow: 0 -18px 40px rgba(246, 196, 69, .12); }
+.p-heroi-texto { max-width: 34rem; display: grid; gap: 14px; text-shadow: 0 1px 2px rgba(0, 0, 0, .3); }
+.p-heroi h1 { margin: 0; font-size: clamp(1.9rem, 3.4vw, 2.8rem); line-height: 1.08; letter-spacing: -.02em; font-weight: 700; }
+.p-heroi p { margin: 0; font-size: 1.02rem; line-height: 1.55; color: #c9d4df; max-width: 30rem; }
+.p-marcas { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 8px; }
+.p-marcas li { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 10px 14px; border-left: 4px solid var(--m); background: rgba(10, 18, 28, .55); border-radius: 0 8px 8px 0; backdrop-filter: blur(4px); }
+.p-marcas li strong { font-size: 1.05rem; }
+.p-marcas li span { font-size: .88rem; color: #c9d4df; text-align: right; font-variant-numeric: tabular-nums; }
+.p-marcas.claro { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.p-marcas.claro li { background: var(--cartao); border: 1px solid var(--borda); border-left: 4px solid var(--m); text-shadow: none; flex-direction: column; gap: 2px; }
+.p-marcas.claro li strong { color: var(--m); }
+.p-marcas.claro li span { color: var(--texto-2); text-align: left; }
+@media (max-width: 860px) {
+  .p-login-dividido { grid-template-columns: minmax(0, 1fr); align-content: start; }
+  .p-heroi { padding: 28px 20px 22px; min-height: 0; }
+  .p-sol { display: none; }
+  .p-placas { height: 40%; }
+  .p-heroi h1 { font-size: 1.5rem; }
+  .p-heroi p { font-size: .92rem; }
+  .p-marcas li { padding: 7px 12px; }
+  .p-marcas li strong { font-size: .95rem; }
+  .p-marcas li span { font-size: .8rem; }
+  .p-login-dividido .p-login-card { margin: 20px auto 40px; padding: 0 20px; max-width: 420px; }
+}
+
+/* ===== rodapé do menu ===== */
+.p-eu { display: flex; align-items: center; gap: 10px; width: 100%; padding: 0 6px 6px; }
+.p-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--cor); color: #fff; display: grid; place-items: center; font-weight: 700; flex: none; }
+.p-eu .p-nome { padding: 0; width: auto; }
+.p-versao { width: 100%; margin: 8px 6px 0; font-size: .75rem; color: var(--texto-3); }
+a.btn-link { text-decoration: none; }
+
+/* ===== textos (ajuda) ===== */
+.p-texto { max-width: 46rem; }
+.p-texto h2 { margin: 22px 0 0; font-size: 1.08rem; }
+.p-texto p { margin: 0; line-height: 1.6; color: var(--texto-2); }
+.p-dl { margin: 0; display: grid; grid-template-columns: minmax(180px, auto) 1fr; gap: 8px 18px; }
+.p-dl dt { font-weight: 600; } .p-dl dd { margin: 0; color: var(--texto-2); }
+.p-novidades { margin: 0; padding-left: 18px; color: var(--texto-2); display: grid; gap: 6px; }
+.p-novidades time { font-weight: 600; color: var(--texto); font-variant-numeric: tabular-nums; margin-right: 6px; }
+
+/* ===== tabela ===== */
+.p-tabela-rolagem { overflow-x: auto; }
+.p-tabela { width: 100%; border-collapse: collapse; font-size: .88rem; }
+.p-tabela th, .p-tabela td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--borda); vertical-align: top; }
+.p-tabela thead th { font-weight: 600; color: var(--texto-2); background: var(--afundado); }
+.p-tabela tbody th { font-weight: 600; }
+.p-tabela .num { text-align: right; font-variant-numeric: tabular-nums; }
+.p-gaveta.largo { width: min(760px, 100vw); }
+
+/* carregando */
+.p-carregando { min-height: 100vh; display: grid; place-items: center; color: var(--texto-3); }

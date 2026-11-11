@@ -211,25 +211,31 @@
     function aplicarTema(t) { if (t === 'claro' || t === 'escuro') document.documentElement.dataset.tema = t; else delete document.documentElement.dataset.tema; }
 
     /* ---------- moldura ---------- */
+    function heroiLogin(ks) {
+      return '<aside class="p-heroi" aria-label="Empresas"><div class="p-heroi-ceu" aria-hidden="true"><span class="p-sol"></span><span class="p-placas"></span></div>' +
+        '<div class="p-heroi-texto"><h1>' + esc(cfg.tituloLogin || cfg.nome) + '</h1><p>' + esc(cfg.fraseLogin || '') + '</p>' + listaMarcas(ks) + '</div></aside>';
+    }
     function marcaHTML(sub) { return '<div class="p-marca"><span class="p-marca-logo" aria-hidden="true">' + esc(cfg.letra) + '</span><div><strong>' + esc(cfg.nome) + '</strong><small>' + esc(sub || cfg.subtitulo || '') + '</small></div></div>'; }
     raiz.innerHTML =
-      '<section class="p-login" id="p-tela-login" hidden>' + (cfg.marcasLogin ? '<div class="p-login-marcas">' + cfg.marcasLogin.map(function (k) { return banner(k, { compacto: true }); }).join('') + '</div>' : '') + '<form class="p-login-card" id="p-form-login" autocomplete="on">' + marcaHTML() +
+      '<section class="p-login' + (cfg.marcasLogin ? ' p-login-dividido' : '') + '" id="p-tela-login" hidden>' + (cfg.marcasLogin ? heroiLogin(cfg.marcasLogin) : '') + '<form class="p-login-card" id="p-form-login" autocomplete="on">' + marcaHTML() +
         '<label class="p-campo">Usuário<select id="p-login-usuario" required></select></label>' +
         '<label class="p-campo">Senha<input id="p-login-senha" type="password" required autocomplete="current-password"></label>' +
         '<label class="p-campo p-check"><input type="checkbox" id="p-login-lembrar"> Manter conectado neste computador</label>' +
         '<button class="btn btn-primario" type="submit" id="p-login-btn">Entrar</button><p class="p-erro" id="p-login-erro" role="alert"></p></form></section>' +
       '<section class="p-login" id="p-tela-config" hidden></section>' +
       (modoPortal ? '<div id="p-tela-app" class="p-portal" hidden><aside class="p-lateral" id="p-lateral"><div class="p-lateral-topo">' + marcaHTML() + '</div><nav class="p-menu" id="p-menu" aria-label="Páginas"></nav>' +
-        '<div class="p-lateral-pe"><span class="p-nome" id="p-nome"></span><button class="btn-link" id="p-btn-conta">Minha conta</button><button class="btn-link" id="p-btn-admin" hidden>Administração</button><button class="btn-link" id="p-btn-sair">Sair</button></div></aside>' +
+        '<div class="p-lateral-pe"><div class="p-eu"><span class="p-avatar" id="p-avatar" aria-hidden="true"></span><span class="p-nome" id="p-nome"></span></div><button class="btn-link" id="p-btn-conta">Minha conta</button><button class="btn-link" id="p-btn-admin" hidden>Administração</button><a class="btn-link" href="#ajuda" data-mod="ajuda">Ajuda</a><button class="btn-link" id="p-btn-sair">Sair</button>' +
+        '<p class="p-versao">' + esc(cfg.rodape || '') + '</p></div></aside>' +
         '<div class="p-veu-menu" id="p-veu-menu" hidden></div><main class="p-principal"><header class="p-mod-topo" id="p-mod-topo"><button class="btn btn-peq p-menu-btn" id="p-menu-btn" type="button" aria-label="Abrir menu">☰</button><div class="p-mod-titulo" id="p-mod-titulo"></div><div class="p-mod-acoes" id="p-mod-acoes"></div></header>' +
         '<nav class="p-abas" id="p-abas" hidden></nav><div class="p-faixas" id="p-faixas"></div><div id="p-conteudo" class="p-portal-conteudo"></div></main></div>' :
       '<div id="p-tela-app" hidden><header class="p-topo">' + marcaHTML() +
         '<div class="p-usuario"><span class="p-nome" id="p-nome"></span><button class="btn-link" id="p-btn-conta">Minha conta</button><button class="btn-link" id="p-btn-admin" hidden>Administração</button><button class="btn-link" id="p-btn-sair">Sair</button></div></header>' +
         '<nav class="p-abas" id="p-abas" role="tablist" hidden></nav><div class="p-faixas" id="p-faixas"></div><div id="p-conteudo"></div></div>') +
       '<div class="p-veu" id="p-veu" hidden></div><aside class="p-gaveta" id="p-gaveta" hidden aria-modal="true" role="dialog"><div class="p-gaveta-topo"><h2 id="p-gaveta-titulo"></h2><button class="btn btn-peq" id="p-gaveta-fechar">Fechar</button></div><div class="p-gaveta-corpo" id="p-gaveta-corpo"></div></aside>' +
-      '<div class="p-toast" id="p-toast" hidden role="status"></div>';
+      '<div class="p-toast" id="p-toast" hidden role="status"></div><div class="p-carregando" id="p-carregando"><span><span class="p-spinner"></span> Carregando…</span></div>';
 
-    function mostrar(tela) { ['p-tela-login', 'p-tela-config', 'p-tela-app'].forEach(function (t) { $('#' + t).hidden = t !== tela; }); }
+    function mostrar(tela) {
+      var c = $('#p-carregando'); if (c) c.remove(); ['p-tela-login', 'p-tela-config', 'p-tela-app'].forEach(function (t) { $('#' + t).hidden = t !== tela; }); }
     var toastT = null;
     function aviso(msg, tipo) { var t = $('#p-toast'); t.textContent = msg; t.className = 'p-toast' + (tipo === 'erro' ? ' erro' : ''); t.hidden = false; clearTimeout(toastT); toastT = setTimeout(function () { t.hidden = true; }, tipo === 'erro' ? 6000 : 2600); }
     function faixa(tipo, html, chave) {
@@ -373,10 +379,11 @@
       if (modoModulo) return entrarModulo();
       $('#p-nome').innerHTML = esc(sessao.nome) + (ehAdmin() ? ' <span class="p-papel">Admin</span>' : '');
       $('#p-btn-admin').hidden = !ehAdmin();
+      var av = $('#p-avatar'); if (av) av.textContent = (sessao.nome || '?').charAt(0).toUpperCase();
       mostrar('p-tela-app');
       await carregarPrefs();
       if (sessao.senhaPadrao) faixa('aviso', 'Você ainda está com a senha padrão. Para mais segurança, troque em <b>Minha conta</b>.', 'senha');
-      if (modoPortal) return montarPortal();
+      if (modoPortal) { registrarAcesso('login'); if (ehAdmin()) incluirFaltantes(); return montarPortal(); }
       montarAbas();
       if (cfg.aoEntrar) await cfg.aoEntrar(ctx);
     }
@@ -418,7 +425,7 @@
       };
       $('#p-menu').innerHTML = '<a href="#inicio" data-mod="inicio" class="p-menu-item"><span class="p-ponto" style="background:var(--texto-3)"></span>Início</a>' +
         visiveis.map(function (m) {
-          return '<a href="#' + esc(m.id) + '" data-mod="' + esc(m.id) + '" class="p-menu-item"><span class="p-ponto" style="background:' + (m.marcas.length > 1 ? 'linear-gradient(135deg,' + m.marcas.map(function (k) { return MARCAS[k].cor; }).join(',') + ')' : corDe(m)) + '"></span><span>' + esc(m.nome) + '<small>' + esc(m.marcas.map(function (k) { return MARCAS[k].nome; }).join(' · ')) + '</small></span></a>';
+          return '<a href="#' + esc(m.id) + '" data-mod="' + esc(m.id) + '" class="p-menu-item"><span class="p-ponto" style="background:' + (m.marcas.length > 1 ? 'linear-gradient(135deg,' + m.marcas.map(function (k) { return MARCAS[k].cor; }).join(',') + ')' : corDe(m)) + '"></span><span>' + esc(m.nome) + '<small>' + esc(nomesMarcas(m.marcas)) + '</small></span></a>';
         }).join('');
       $('#p-menu-btn').onclick = function () { document.documentElement.classList.toggle('p-menu-aberto'); };
       $('#p-veu-menu').onclick = function () { document.documentElement.classList.remove('p-menu-aberto'); };
@@ -430,26 +437,29 @@
       document.documentElement.classList.remove('p-menu-aberto');
       var id = location.hash.slice(1).split('/')[0] || 'inicio';
       var m = cfg.modulos.find(function (x) { return x.id === id; });
+      if (id === 'ajuda') { atual = 'ajuda'; Object.keys(abertos).forEach(function (k) { abertos[k].hidden = true; }); document.querySelectorAll('.p-menu-item').forEach(function (a) { a.classList.remove('ativo'); }); document.documentElement.style.setProperty('--cor', cfg.cor); topoModulo(null, 'Ajuda', 'Como usar a plataforma'); return ajuda(); }
+      var aj = $('#p-ajuda'); if (aj) aj.hidden = true;
       if (m && !permitido(m)) { aviso('Você não tem acesso a ' + m.nome + '. Peça à administradora.', 'erro'); m = null; }
       atual = m ? m.id : 'inicio';
       document.querySelectorAll('.p-menu-item').forEach(function (a) { a.classList.toggle('ativo', a.dataset.mod === atual); });
       Object.keys(abertos).forEach(function (k) { abertos[k].hidden = k !== atual; });
       var home = $('#p-inicio'); if (home) home.hidden = !!m;
       if (!m) { document.documentElement.style.setProperty('--cor', cfg.cor); topoModulo(null); return inicio(); }
+      registrarAcesso('pagina', m.id);
       if (!abertos[m.id]) {
         var f = document.createElement('iframe'); f.className = 'p-quadro'; f.title = m.nome; f.src = m.src + (m.src.indexOf('?') < 0 ? '?' : '&') + 'v=' + (cfg.versao || '1');
         f.setAttribute('allow', 'clipboard-read; clipboard-write'); $('#p-conteudo').appendChild(f); abertos[m.id] = f;
       }
       topoModulo(m); document.title = m.nome + ' · ' + cfg.nome;
     }
-    function topoModulo(m) {
+    function topoModulo(m, titulo, sub) {
       var t = $('#p-mod-titulo'), topo = $('#p-mod-topo');
-      if (!m) { t.innerHTML = '<strong>Início</strong><small>' + esc(cfg.subtitulo || '') + '</small>'; topo.style.background = ''; topo.classList.remove('colorido'); $('#p-mod-acoes').innerHTML = ''; document.title = cfg.nome; return; }
+      if (!m) { t.innerHTML = '<strong>' + esc(titulo || 'Início') + '</strong><small>' + esc(sub || cfg.subtitulo || '') + '</small>'; topo.style.background = ''; topo.classList.remove('colorido'); $('#p-mod-acoes').innerHTML = ''; document.title = cfg.nome; return; }
       var ks = m.marcasAtuais || m.marcas, cores = ks.map(function (k) { return MARCAS[k].cor; });
       document.documentElement.style.setProperty('--cor', cores[0]);
       topo.classList.add('colorido');
       topo.style.background = 'linear-gradient(110deg,' + (cores.length > 1 ? cores.join(',') : cores[0] + ',' + MARCAS[ks[0]].cor2) + ')';
-      t.innerHTML = '<strong>' + esc(m.nome) + '</strong><small>' + esc(ks.map(function (k) { return MARCAS[k].nome; }).join(' · ')) + ' · ' + esc(m.descricao || '') + '</small>';
+      t.innerHTML = '<strong>' + esc(m.nome) + '</strong><small>' + esc(m.descricao || '') + ' — ' + esc(nomesMarcas(ks)) + '</small>';
       acoesModulo();
     }
     function acoesModulo() {
@@ -457,17 +467,68 @@
       box.innerHTML = (a.preferencias ? '<button class="btn btn-peq" type="button" data-acao="pref">Minhas preferências</button>' : '') + (a.configuracoes ? '<button class="btn btn-peq" type="button" data-acao="conf">Configurações da página</button>' : '');
       box.onclick = function (ev) { var b = ev.target.closest('[data-acao]'); if (!b) return; (b.dataset.acao === 'pref' ? a.preferencias : a.configuracoes)(); };
     }
+    function nomesMarcas(ks) { var n = ks.map(function (k) { return MARCAS[k].nome; }); return n.length > 1 ? n.slice(0, -1).join(', ') + ' e ' + n[n.length - 1] : n[0]; }
+    function ajuda() {
+      var box = $('#p-ajuda'), hi = $('#p-inicio'); if (hi) hi.hidden = true;
+      if (!box) { box = document.createElement('section'); box.id = 'p-ajuda'; box.className = 'p-inicio p-texto'; $('#p-conteudo').appendChild(box); }
+      box.hidden = false;
+      box.innerHTML = '<h1>Ajuda</h1>' +
+        '<h2>Entrar</h2><p>Escolha o seu nome e digite a sua senha. A senha inicial de todos é <b>' + SENHA_PADRAO + '</b>; troque em <b>Minha conta</b> no primeiro acesso. Marque <b>Manter conectado</b> só no seu computador.</p>' +
+        '<h2>Esqueci a senha</h2><p>Peça a uma administradora: em <b>Administração</b> ela volta a sua senha para ' + SENHA_PADRAO + ' e você troca de novo.</p>' +
+        '<h2>Páginas</h2><dl class="p-dl">' + cfg.modulos.map(function (m) { return '<dt><a href="#' + esc(m.id) + '">' + esc(m.nome) + '</a></dt><dd>' + esc(m.descricao || '') + ' (' + esc(nomesMarcas(m.marcas)) + ').</dd>'; }).join('') + '</dl>' +
+        '<h2>O que eu altero aqui vale para todos?</h2><p>Sim. Mensagens, registros e planilhas salvos numa página ficam guardados na hora para toda a equipe. O que é só seu (senha, tema, nome nas mensagens, assinatura) fica em <b>Minha conta</b> e em <b>Minhas preferências</b> de cada página.</p>' +
+        '<h2>Onde ficam os dados</h2><p>Cada página guarda os dados no seu repositório privado no GitHub, com histórico de todas as alterações. As planilhas da cobrança e das faturas continuam no Google; antes de alterar uma planilha, a plataforma guarda uma cópia de como ela estava.</p>' +
+        '<h2>Contatos</h2>' + listaMarcas(['wegen', 'smartben', 'wattwise'], true) +
+        (cfg.novidades ? '<h2>Novidades</h2><ul class="p-novidades">' + cfg.novidades.map(function (n) { return '<li><time>' + esc(n[0]) + '</time> ' + esc(n[1]) + '</li>'; }).join('') + '</ul>' : '');
+    }
+    /* Registro de acessos: só a administradora vê (Administração > Acompanhamento de acessos). */
+    var registrados = {};
+    function registrarAcesso(tipo, pagina) {
+      if (!modoPortal || !sessao || !cfg.registroAcessos) return;
+      var chave = tipo + ':' + (pagina || ''); if (registrados[chave]) return; registrados[chave] = 1;
+      var agora = new Date(), dia = agora.toISOString().slice(0, 10), login = sessao.login, nome = sessao.nome;
+      dados.alterar(cfg.registroAcessos + '/' + login + '.json', function (r) {
+        r = r || {}; r.nome = nome; r.paginas = r.paginas || {}; r.dias = r.dias || {}; r.eventos = r.eventos || [];
+        if (tipo === 'login') { r.acessos = (r.acessos || 0) + 1; r.dias[dia] = (r.dias[dia] || 0) + 1; r.ultimo = agora.toISOString(); if (!r.primeiro) r.primeiro = r.ultimo; }
+        else r.paginas[pagina] = (r.paginas[pagina] || 0) + 1;
+        r.eventos.unshift({ em: agora.toISOString(), tipo: tipo, pagina: pagina || undefined }); r.eventos = r.eventos.slice(0, 80);
+        var limite = new Date(agora - 120 * 864e5).toISOString().slice(0, 10); Object.keys(r.dias).forEach(function (d) { if (d < limite) delete r.dias[d]; });
+        return r;
+      }, 'Atualiza registro', {}).catch(function () { /* não atrapalha o uso */ });
+    }
+    async function desenharAcompanhamento(box) {
+      box.innerHTML = '<h3>Acompanhamento de acessos</h3><p class="p-ajuda">Só administradoras veem este quadro. Conta cada entrada na plataforma e cada página aberta.</p><p class="p-dica"><span class="p-spinner"></span> Carregando…</p>';
+      try {
+        var lista = (await dados.listar(cfg.registroAcessos)).filter(function (f) { return /\.json$/.test(f.name); });
+        var regs = await Promise.all(lista.map(function (f) { return dados.ler(f.path, null).then(function (r) { return Object.assign({ login: f.name.replace(/\.json$/, '') }, r); }); }));
+        var hoje = new Date(), d7 = new Date(hoje - 6 * 864e5).toISOString().slice(0, 10), d30 = new Date(hoje - 29 * 864e5).toISOString().slice(0, 10);
+        var soma = function (r, desde) { return Object.keys(r.dias || {}).filter(function (d) { return d >= desde; }).reduce(function (t, d) { return t + r.dias[d]; }, 0); };
+        var nomeMod = function (id) { var m = cfg.modulos.find(function (x) { return x.id === id; }); return m ? m.nome : id; };
+        var pessoas = listaUsuarios().map(function (u) { return regs.find(function (r) { return r.login === u.login; }) || { login: u.login, nome: u.nome }; });
+        pessoas.sort(function (a, b) { return (b.acessos || 0) - (a.acessos || 0); });
+        box.innerHTML = '<h3>Acompanhamento de acessos</h3><p class="p-ajuda">Só administradoras veem este quadro. Conta cada entrada na plataforma e cada página aberta.</p>' +
+          '<div class="p-tabela-rolagem"><table class="p-tabela"><thead><tr><th scope="col">Pessoa</th><th scope="col" class="num">Total</th><th scope="col" class="num">7 dias</th><th scope="col" class="num">30 dias</th><th scope="col">Último acesso</th><th scope="col">Páginas mais abertas</th></tr></thead><tbody>' +
+          pessoas.map(function (r) {
+            var pags = Object.keys(r.paginas || {}).sort(function (a, b) { return r.paginas[b] - r.paginas[a]; }).slice(0, 3).map(function (k) { return esc(nomeMod(k)) + ' (' + r.paginas[k] + ')'; }).join(', ');
+            return '<tr><th scope="row">' + esc(r.nome || r.login) + '</th><td class="num">' + (r.acessos || 0) + '</td><td class="num">' + soma(r, d7) + '</td><td class="num">' + soma(r, d30) + '</td><td>' + (r.ultimo ? esc(new Date(r.ultimo).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })) : '<span class="p-dica">nunca entrou</span>') + '</td><td>' + (pags || '<span class="p-dica">—</span>') + '</td></tr>';
+          }).join('') + '</tbody></table></div>';
+      } catch (e) { box.innerHTML = '<h3>Acompanhamento de acessos</h3><p class="p-erro">Não foi possível carregar: ' + esc(e.message) + '</p>'; }
+    }
+    function listaMarcas(ks, claro) {
+      return '<ul class="p-marcas' + (claro ? ' claro' : '') + '">' + ks.map(function (k) { var m = MARCAS[k]; return '<li style="--m:' + m.cor + '"><strong>' + esc(m.nome) + '</strong><span>' + m.whatsapp.map(function (n) { return 'WhatsApp ' + esc(n); }).join('<br>') + '</span></li>'; }).join('') + '</ul>';
+    }
     function inicio() {
       var box = $('#p-inicio');
       if (!box) { box = document.createElement('section'); box.id = 'p-inicio'; box.className = 'p-inicio'; $('#p-conteudo').appendChild(box); }
+      box.hidden = false;
       var h = new Date().getHours(), oi = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
       var vis = cfg.modulos.filter(permitido);
       box.innerHTML = '<h1>' + oi + ', ' + esc(sessao.nome) + '!</h1><p class="p-ajuda">Escolha uma página no menu ao lado. Tudo fica aqui, com um login só.</p>' +
         '<div class="p-cartoes">' + vis.map(function (m) {
           var cores = m.marcas.map(function (k) { return MARCAS[k].cor; });
-          return '<a class="p-cartao" href="#' + esc(m.id) + '" style="--c1:' + cores[0] + ';--c2:' + (cores[1] || MARCAS[m.marcas[0]].cor2) + '"><span class="p-cartao-faixa"></span><strong>' + esc(m.nome) + '</strong><small>' + esc(m.marcas.map(function (k) { return MARCAS[k].nome; }).join(' · ')) + '</small><span class="p-ajuda">' + esc(m.descricao || '') + '</span></a>';
+          return '<a class="p-cartao" href="#' + esc(m.id) + '" style="--c1:' + cores[0] + ';--c2:' + (cores[1] || MARCAS[m.marcas[0]].cor2) + '"><span class="p-cartao-faixa"></span><strong>' + esc(m.nome) + '</strong><span class="p-ajuda">' + esc(m.descricao || '') + '</span><small>' + esc(nomesMarcas(m.marcas)) + '</small></a>';
         }).join('') + '</div>' +
-        '<h2 class="p-inicio-sub">Nossas empresas</h2><div class="p-marcas-grade">' + ['wegen', 'smartben', 'wattwise'].map(function (k) { return banner(k); }).join('') + '</div>';
+        '<h2 class="p-inicio-sub">Contatos das empresas</h2>' + listaMarcas(['wegen', 'smartben', 'wattwise'], true);
     }
 
     function montarAbas() {
@@ -486,7 +547,8 @@
     }
 
     /* ---------- gaveta ---------- */
-    function abrirGaveta(titulo, html) {
+    function abrirGaveta(titulo, html, largo) {
+      $('#p-gaveta').classList.toggle('largo', !!largo);
       $('#p-gaveta-titulo').textContent = titulo; $('#p-gaveta-corpo').innerHTML = html;
       $('#p-veu').hidden = false; $('#p-gaveta').hidden = false; $('#p-gaveta-fechar').focus();
       return $('#p-gaveta-corpo');
@@ -574,7 +636,7 @@
           '<p class="p-erro" id="p-admin-erro" role="alert"></p></div>' +
         '<form class="p-bloco" id="p-form-token"><h3>Token do GitHub</h3><p class="p-ajuda">Use quando o token vencer. Ele precisa de <b>Contents: Read and write</b> em <code>' + esc(cfg.repoSite) + '</code> e <code>' + esc(cfg.repoDados) + '</code>. Ninguém precisa trocar a senha.</p>' +
           '<input class="p-entrada" type="password" id="p-token-novo" placeholder="github_pat_..." autocomplete="off" required><div class="p-linha"><button class="btn btn-primario" type="submit">Trocar token</button></div><p class="p-erro" id="p-token-erro" role="alert"></p></form>' +
-        '<div id="p-admin-extra"></div>');
+        '<div id="p-admin-extra"></div>', modoPortal);
       desenharUsuarios();
       $('#p-form-novo', corpo).onsubmit = async function (ev) {
         ev.preventDefault(); var nome = $('#p-novo-nome').value.trim(), papel = $('#p-novo-papel').value, login = slug(nome), err = $('#p-admin-erro'); err.textContent = '';
@@ -609,8 +671,21 @@
         });
       };
       (cfg.admin || []).forEach(function (sec) { var d = document.createElement('div'); d.className = 'p-bloco'; d.innerHTML = '<h3>' + esc(sec.titulo) + '</h3>'; $('#p-admin-extra').appendChild(d); sec.desenhar(d, ctx); });
+      if (modoPortal && cfg.registroAcessos) { var ac = document.createElement('div'); ac.className = 'p-bloco'; corpo.prepend(ac); desenharAcompanhamento(ac); }
     }
     function modulosMarcados(form) { return Array.prototype.map.call(form.querySelectorAll('[data-mod-novo]:checked'), function (i) { return i.dataset.modNovo; }); }
+    /** Administradora entrou: inclui sozinho quem tinha acesso às plataformas antigas e ainda não está aqui. */
+    async function incluirFaltantes() {
+      try {
+        var pessoas = {};
+        cfg.modulos.forEach(function (m) { (m.usuarios || []).forEach(function (n) { var l = slug(n); if (!cofre.usuarios[l]) pessoas[l] = n; }); });
+        var ls = Object.keys(pessoas); if (!ls.length) return;
+        await carregarCofre(); var n = JSON.parse(JSON.stringify(cofre)), mestra = unb64(sessao.mestra);
+        for (var i = 0; i < ls.length; i++) if (!n.usuarios[ls[i]]) n.usuarios[ls[i]] = await entradaUsuario(pessoas[ls[i]], 'usuario', SENHA_PADRAO, mestra, true);
+        await salvarCofre(n, 'Acessos das plataformas antigas incluídos');
+        aviso('Incluímos ' + ls.map(function (l) { return pessoas[l]; }).join(', ') + ' com a senha ' + SENHA_PADRAO + '.');
+      } catch (e) { /* tenta de novo no próximo acesso */ }
+    }
     function desenharFaltam() {
       var box = $('#p-faltam'); if (!box) return;
       var pessoas = {};
