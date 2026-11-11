@@ -258,6 +258,24 @@
       d.querySelector('button').onclick = function () { d.remove(); }; box.appendChild(d); return d;
     }
 
+    // Avisa quando sai uma versão nova da plataforma (o navegador às vezes segura a antiga).
+    var vigiando = false;
+    function vigiarVersao() {
+      if (vigiando || !cfg.versao) return; vigiando = true;
+      async function checar() {
+        try {
+          var t = await (await fetch(location.pathname + '?nv=' + Date.now(), { cache: 'no-store' })).text();
+          var m = t.match(/versao:\s*'([^']+)'/);
+          if (m && m[1] !== String(cfg.versao)) {
+            var d = faixa('info', '<b>Saiu uma versão nova da plataforma.</b> Clique em Atualizar para usar.', 'versao');
+            if (d && !d.querySelector('.p-atualizar')) { var b = document.createElement('button'); b.className = 'btn btn-peq btn-primario p-atualizar'; b.type = 'button'; b.textContent = 'Atualizar'; b.onclick = function () { location.reload(); }; d.insertBefore(b, d.lastChild); }
+          }
+        } catch (e) { /* sem internet: tenta depois */ }
+      }
+      setTimeout(checar, 20000); setInterval(checar, 5 * 60000);
+      document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') checar(); });
+    }
+
     /* ---------- cofre ---------- */
     function cofreValido(c) { return !!(c && c.usuarios && Object.keys(c.usuarios).length && c.token); }
     /**
@@ -409,7 +427,7 @@
       mostrar('p-tela-app');
       await carregarPrefs();
       if (sessao.senhaPadrao) faixa('aviso', 'Você ainda está com a senha padrão. Para mais segurança, troque em <b>Minha conta</b>.', 'senha');
-      if (modoPortal) { registrarAcesso('login'); if (ehAdmin()) incluirFaltantes(); return montarPortal(); }
+      if (modoPortal) { registrarAcesso('login'); if (ehAdmin()) incluirFaltantes(); vigiarVersao(); return montarPortal(); }
       montarAbas();
       if (cfg.aoEntrar) await cfg.aoEntrar(ctx);
     }
