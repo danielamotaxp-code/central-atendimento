@@ -26,6 +26,7 @@
   var SENHA_PADRAO = '102030';
   var API = 'https://api.github.com';
   var enc = new TextEncoder(), dec = new TextDecoder();
+  var CARGA = Date.now().toString(36); // cada vez que o portal abre, as páginas vêm na versão mais nova
   var CLIENTE_GOOGLE = '164834594868-vaihaied48tm370kpkp6km6fagjcasog.apps.googleusercontent.com';
 
   /* ======================= utilidades ======================= */
@@ -472,7 +473,7 @@
       if (!m) { document.documentElement.style.setProperty('--cor', cfg.cor); topoModulo(null); return inicio(); }
       registrarAcesso('pagina', m.id);
       if (!abertos[m.id]) {
-        var f = document.createElement('iframe'); f.className = 'p-quadro'; f.title = m.nome; f.src = m.src + (m.src.indexOf('?') < 0 ? '?' : '&') + 'v=' + (cfg.versao || '1');
+        var f = document.createElement('iframe'); f.className = 'p-quadro'; f.title = m.nome; f.src = m.src + (m.src.indexOf('?') < 0 ? '?' : '&') + 'v=' + (cfg.versao || '1') + '.' + CARGA;
         f.setAttribute('allow', 'clipboard-read; clipboard-write'); $('#p-conteudo').appendChild(f); abertos[m.id] = f;
       }
       topoModulo(m); document.title = m.nome + ' · ' + cfg.nome;
