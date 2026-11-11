@@ -296,6 +296,9 @@
       paralaxe();
       var sel = $('#p-login-usuario'), ult = guarda.ler('ultimo', '');
       sel.innerHTML = '<option value="">Selecione…</option>' + listaUsuarios().map(function (u) { return '<option value="' + esc(u.login) + '"' + (u.login === ult ? ' selected' : '') + '>' + esc(u.nome) + '</option>'; }).join('');
+      // quem está na equipe mas ainda não foi liberado aparece na lista (entra assim que a administradora fizer login)
+      var faltam = (cfg.equipe || []).filter(function (n) { return !cofre.usuarios[slug(n)]; });
+      if (faltam.length) sel.innerHTML += faltam.map(function (n) { return '<option value="' + esc(slug(n)) + '" data-pendente="1">' + esc(n) + ' (liberação pendente)</option>'; }).join('');
       $('#p-login-lembrar').checked = guarda.ler('lembrar', false);
       $('#p-login-erro').textContent = '';
       mostrar('p-tela-login');
@@ -310,6 +313,7 @@
       try {
         await carregarCofre();
         var u = cofre && cofre.usuarios[login];
+        if (!u && (cfg.equipe || []).some(function (n) { return slug(n) === login; })) throw new Error('Seu acesso ainda não foi liberado. Ele é liberado automaticamente quando a administradora entrar na plataforma; depois, use a senha 102030.');
         if (!u) throw new Error('Este usuário não existe mais. Recarregue a página.');
         var mestra;
         try { mestra = await abrirEntrada(u, senha); } catch (e) { throw new Error('Senha incorreta.'); }
