@@ -446,3 +446,7 @@ a.btn-link { text-decoration: none; }
 .p-banner-zap { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .p-banner-zap span { background: transparent; border: 1px solid rgba(255, 255, 255, .3); border-radius: 999px; padding: 3px 10px; font-size: .8rem; font-weight: 600; backdrop-filter: none; }
 @media (max-width: 640px) { .p-banner-palco { display: none; } .p-banner-texto { max-width: 100%; } }
+
+.p-cena-faixa p { margin: 0; font-size: .82rem; color: rgba(245, 245, 245, .55); }
+.p-login-cena { grid-template-rows: auto 1fr auto; }
+.p-cena-titulo { align-self: center; }

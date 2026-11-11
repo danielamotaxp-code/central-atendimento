@@ -215,7 +215,7 @@
       return '<div class="p-palco" aria-hidden="true">' + placas() + '</div>' +
         '<header class="p-cena-topo"><div class="p-marca"><span class="p-marca-logo" aria-hidden="true">' + esc(cfg.letra) + '</span><div><strong>' + esc(cfg.nome) + '</strong><small>' + esc(cfg.subtitulo || '') + '</small></div></div>' +
         '<nav class="p-cena-marcas" aria-label="Empresas">' + ks.map(function (k) { return '<span style="--m:' + MARCAS[k].cor + '">' + esc(MARCAS[k].nome) + '</span>'; }).join('') + '</nav></header>' +
-        '<div class="p-cena-titulo"><p class="p-cena-local">Minas Gerais · energia compartilhada</p><h1>' + esc(cfg.tituloLogin || cfg.nome) + '</h1><p>' + esc(cfg.fraseLogin || '') + '</p></div>';
+        '<div class="p-cena-titulo"><h1>' + esc(cfg.tituloLogin || cfg.nome) + '</h1><p>' + esc(cfg.fraseLogin || '') + '</p></div>';
     }
     function placas() { return '<span class="p-placa p1"><i></i><b></b></span><span class="p-placa p2"><i></i><b></b></span><span class="p-placa p3"><i></i><b></b></span>'; }
     function seloLogin(ks) {
@@ -224,9 +224,8 @@
         '<g class="p-selo-giro"><text><textPath href="#p-selo-c" textLength="462" lengthAdjust="spacing">' + ks.map(function (k) { return '<tspan fill="' + MARCAS[k].cor2 + '">' + esc(MARCAS[k].nome.toUpperCase()) + '</tspan> · '; }).join('') + 'ENERGIA SOLAR · </textPath></text></g>' +
         '<circle cx="100" cy="100" r="44" fill="#fff"/><g fill="#111">' + [[78, 78], [101, 78], [78, 101], [101, 101]].map(function (q) { return '<path d="M' + (q[0] + 4) + ' ' + q[1] + 'h13l4 4v13l-4 4h-13l-4-4v-13z"/>'; }).join('') + '</g></svg>';
     }
-    function faixaLogin(ks) {
-      return '<footer class="p-cena-faixa"><dl class="p-numeros"><div><dt>Cooperativas</dt><dd>' + String(ks.length).padStart(2, '0') + '</dd></div><div><dt>Páginas</dt><dd>' + String((cfg.modulos || []).length).padStart(2, '0') + '</dd></div><div><dt>Pessoas na equipe</dt><dd id="p-cena-pessoas">—</dd></div></dl>' +
-        '<ul class="p-cena-contatos">' + ks.map(function (k) { var m = MARCAS[k]; return '<li style="--m:' + m.cor + '"><strong>' + esc(m.nome) + '</strong><span>' + m.whatsapp.map(esc).join(' · ') + '</span></li>'; }).join('') + '</ul></footer>';
+    function faixaLogin() {
+      return '<footer class="p-cena-faixa"><p>Acesso restrito à equipe. Esqueceu a senha? Fale com a administradora.</p><p>' + esc(cfg.rodape || '') + '</p></footer>';
     }
     function marcaHTML(sub) { return '<div class="p-marca"><span class="p-marca-logo" aria-hidden="true">' + esc(cfg.letra) + '</span><div><strong>' + esc(cfg.nome) + '</strong><small>' + esc(sub || cfg.subtitulo || '') + '</small></div></div>'; }
     raiz.innerHTML =
@@ -234,7 +233,7 @@
         '<label class="p-campo">Usuário<select id="p-login-usuario" required></select></label>' +
         '<label class="p-campo">Senha<input id="p-login-senha" type="password" required autocomplete="current-password"></label>' +
         '<label class="p-campo p-check"><input type="checkbox" id="p-login-lembrar"> Manter conectado neste computador</label>' +
-        '<button class="btn btn-primario" type="submit" id="p-login-btn">Entrar</button><p class="p-erro" id="p-login-erro" role="alert"></p></form>' + (cfg.marcasLogin ? faixaLogin(cfg.marcasLogin) : '') + '</section>' +
+        '<button class="btn btn-primario" type="submit" id="p-login-btn">Entrar</button><p class="p-erro" id="p-login-erro" role="alert"></p></form>' + (cfg.marcasLogin ? faixaLogin() : '') + '</section>' +
       '<section class="p-login" id="p-tela-config" hidden></section>' +
       (modoPortal ? '<div id="p-tela-app" class="p-portal" hidden><aside class="p-lateral" id="p-lateral"><div class="p-lateral-topo">' + marcaHTML() + '</div><nav class="p-menu" id="p-menu" aria-label="Páginas"></nav>' +
         '<div class="p-lateral-pe"><div class="p-eu"><span class="p-avatar" id="p-avatar" aria-hidden="true"></span><span class="p-nome" id="p-nome"></span></div><button class="btn-link" id="p-btn-conta">Minha conta</button><button class="btn-link" id="p-btn-admin" hidden>Administração</button><a class="btn-link" href="#ajuda" data-mod="ajuda">Ajuda</a><button class="btn-link" id="p-btn-sair">Sair</button>' +
@@ -298,7 +297,6 @@
       var sel = $('#p-login-usuario'), ult = guarda.ler('ultimo', '');
       sel.innerHTML = '<option value="">Selecione…</option>' + listaUsuarios().map(function (u) { return '<option value="' + esc(u.login) + '"' + (u.login === ult ? ' selected' : '') + '>' + esc(u.nome) + '</option>'; }).join('');
       $('#p-login-lembrar').checked = guarda.ler('lembrar', false);
-      var np = $('#p-cena-pessoas'); if (np) np.textContent = String(Object.keys(cofre.usuarios).length).padStart(2, '0');
       $('#p-login-erro').textContent = '';
       mostrar('p-tela-login');
       setTimeout(function () { (sel.value ? $('#p-login-senha') : sel).focus(); }, 30);
