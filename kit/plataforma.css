@@ -547,3 +547,13 @@ a.btn-link { text-decoration: none; }
 }
 .p-faixa.info { background: #eaf1fb; color: #0c1f45; border: 1px solid #c4d6f0; }
 .p-faixa .p-atualizar { background: #0c1f45; border-color: #0c1f45; color: #fff; }
+/* tela dividida: título numa linha, botões embaixo, sem ocupar tanto espaço */
+@media (max-width: 900px) {
+  .p-mod-topo { flex-wrap: wrap; min-height: 0; padding-top: 12px; padding-bottom: 12px; }
+  .p-mod-titulo { flex: 1 1 0; }
+  .p-mod-acoes { width: 100%; justify-content: flex-start; }
+  .p-mod-acoes:empty { display: none; }
+  .p-mod-titulo .p-faixa-onde { display: none; }
+  .p-mod-titulo strong { font-size: 1.3rem; }
+}
+@media (max-width: 620px) { .p-faixa-desc { display: none; } }
