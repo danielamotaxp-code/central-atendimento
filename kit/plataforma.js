@@ -212,16 +212,31 @@
 
     /* ---------- moldura ---------- */
     function heroiLogin(ks) {
-      return '<aside class="p-heroi" aria-label="Empresas"><div class="p-heroi-ceu" aria-hidden="true"><span class="p-sol"></span><span class="p-placas"></span></div>' +
-        '<div class="p-heroi-texto"><h1>' + esc(cfg.tituloLogin || cfg.nome) + '</h1><p>' + esc(cfg.fraseLogin || '') + '</p>' + listaMarcas(ks) + '</div></aside>';
+      var giro = ks.map(function (k) { return MARCAS[k].nome; }).join(' · ') + ' · energia solar · ';
+      return '<div class="p-cena" aria-hidden="true"></div>' +
+        '<div class="p-flutuantes" aria-hidden="true"><span class="p-modulo3d m1"><i></i></span><span class="p-modulo3d m2"><i></i></span><span class="p-modulo3d m3"><i></i></span></div>' +
+        '<header class="p-cena-topo"><div class="p-marca"><span class="p-marca-logo" aria-hidden="true">' + esc(cfg.letra) + '</span><div><strong>' + esc(cfg.nome) + '</strong><small>' + esc(cfg.subtitulo || '') + '</small></div></div>' +
+        '<nav class="p-cena-marcas" aria-label="Empresas">' + ks.map(function (k) { return '<span style="--m:' + MARCAS[k].cor + '">' + esc(MARCAS[k].nome) + '</span>'; }).join('') + '</nav></header>' +
+        '<div class="p-cena-titulo"><p class="p-cena-local">Minas Gerais · energia compartilhada</p><h1>' + esc(cfg.tituloLogin || cfg.nome) + '</h1><p>' + esc(cfg.fraseLogin || '') + '</p></div>';
+    }
+    function seloLogin(ks) {
+      var giro = ks.map(function (k) { return MARCAS[k].nome; }).join(' · ') + ' · energia solar · ';
+      return '<svg class="p-selo" viewBox="0 0 200 200" aria-hidden="true"><defs><path id="p-selo-c" d="M100,100 m-74,0 a74,74 0 1,1 148,0 a74,74 0 1,1 -148,0"/></defs>' +
+        '<g class="p-selo-giro"><text><textPath href="#p-selo-c" textLength="462" lengthAdjust="spacing">' + esc(giro.toUpperCase()) + '</textPath></text></g>' +
+        '<circle cx="100" cy="100" r="30" fill="#f7c74d"/><g stroke="#f7c74d" stroke-width="5" stroke-linecap="round">' +
+        [0, 45, 90, 135, 180, 225, 270, 315].map(function (g) { var r = g * Math.PI / 180; return '<line x1="' + (100 + Math.cos(r) * 38).toFixed(1) + '" y1="' + (100 + Math.sin(r) * 38).toFixed(1) + '" x2="' + (100 + Math.cos(r) * 48).toFixed(1) + '" y2="' + (100 + Math.sin(r) * 48).toFixed(1) + '"/>'; }).join('') + '</g></svg>';
+    }
+    function faixaLogin(ks) {
+      return '<footer class="p-cena-faixa"><dl class="p-numeros"><div><dt>Cooperativas</dt><dd>' + String(ks.length).padStart(2, '0') + '</dd></div><div><dt>Páginas</dt><dd>' + String((cfg.modulos || []).length).padStart(2, '0') + '</dd></div><div><dt>Pessoas na equipe</dt><dd id="p-cena-pessoas">—</dd></div></dl>' +
+        '<ul class="p-cena-contatos">' + ks.map(function (k) { var m = MARCAS[k]; return '<li style="--m:' + m.cor + '"><strong>' + esc(m.nome) + '</strong><span>' + m.whatsapp.map(esc).join(' · ') + '</span></li>'; }).join('') + '</ul></footer>';
     }
     function marcaHTML(sub) { return '<div class="p-marca"><span class="p-marca-logo" aria-hidden="true">' + esc(cfg.letra) + '</span><div><strong>' + esc(cfg.nome) + '</strong><small>' + esc(sub || cfg.subtitulo || '') + '</small></div></div>'; }
     raiz.innerHTML =
-      '<section class="p-login' + (cfg.marcasLogin ? ' p-login-dividido' : '') + '" id="p-tela-login" hidden>' + (cfg.marcasLogin ? heroiLogin(cfg.marcasLogin) : '') + '<form class="p-login-card" id="p-form-login" autocomplete="on">' + marcaHTML() +
+      '<section class="p-login' + (cfg.marcasLogin ? ' p-login-cena' : '') + '" id="p-tela-login" hidden>' + (cfg.marcasLogin ? heroiLogin(cfg.marcasLogin) : '') + '<form class="p-login-card" id="p-form-login" autocomplete="on">' + (cfg.marcasLogin ? seloLogin(cfg.marcasLogin) : '') + marcaHTML() +
         '<label class="p-campo">Usuário<select id="p-login-usuario" required></select></label>' +
         '<label class="p-campo">Senha<input id="p-login-senha" type="password" required autocomplete="current-password"></label>' +
         '<label class="p-campo p-check"><input type="checkbox" id="p-login-lembrar"> Manter conectado neste computador</label>' +
-        '<button class="btn btn-primario" type="submit" id="p-login-btn">Entrar</button><p class="p-erro" id="p-login-erro" role="alert"></p></form></section>' +
+        '<button class="btn btn-primario" type="submit" id="p-login-btn">Entrar</button><p class="p-erro" id="p-login-erro" role="alert"></p></form>' + (cfg.marcasLogin ? faixaLogin(cfg.marcasLogin) : '') + '</section>' +
       '<section class="p-login" id="p-tela-config" hidden></section>' +
       (modoPortal ? '<div id="p-tela-app" class="p-portal" hidden><aside class="p-lateral" id="p-lateral"><div class="p-lateral-topo">' + marcaHTML() + '</div><nav class="p-menu" id="p-menu" aria-label="Páginas"></nav>' +
         '<div class="p-lateral-pe"><div class="p-eu"><span class="p-avatar" id="p-avatar" aria-hidden="true"></span><span class="p-nome" id="p-nome"></span></div><button class="btn-link" id="p-btn-conta">Minha conta</button><button class="btn-link" id="p-btn-admin" hidden>Administração</button><a class="btn-link" href="#ajuda" data-mod="ajuda">Ajuda</a><button class="btn-link" id="p-btn-sair">Sair</button>' +
@@ -272,10 +287,20 @@
     }
 
     /* ---------- login ---------- */
+    function paralaxe() {
+      var t = $('#p-tela-login'); if (!t || t.dataset.paralaxe || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      t.dataset.paralaxe = '1';
+      t.addEventListener('pointermove', function (ev) {
+        var x = ev.clientX / innerWidth - .5, y = ev.clientY / innerHeight - .5;
+        t.style.setProperty('--px', x.toFixed(3)); t.style.setProperty('--py', y.toFixed(3));
+      });
+    }
     function prepararLogin() {
+      paralaxe();
       var sel = $('#p-login-usuario'), ult = guarda.ler('ultimo', '');
       sel.innerHTML = '<option value="">Selecione…</option>' + listaUsuarios().map(function (u) { return '<option value="' + esc(u.login) + '"' + (u.login === ult ? ' selected' : '') + '>' + esc(u.nome) + '</option>'; }).join('');
       $('#p-login-lembrar').checked = guarda.ler('lembrar', false);
+      var np = $('#p-cena-pessoas'); if (np) np.textContent = String(Object.keys(cofre.usuarios).length).padStart(2, '0');
       $('#p-login-erro').textContent = '';
       mostrar('p-tela-login');
       setTimeout(function () { (sel.value ? $('#p-login-senha') : sel).focus(); }, 30);
@@ -523,7 +548,10 @@
       box.hidden = false;
       var h = new Date().getHours(), oi = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
       var vis = cfg.modulos.filter(permitido);
-      box.innerHTML = '<h1>' + oi + ', ' + esc(sessao.nome) + '!</h1><p class="p-ajuda">Escolha uma página no menu ao lado. Tudo fica aqui, com um login só.</p>' +
+      var hoje = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+      box.innerHTML = '<header class="p-inicio-cena"><div class="p-cena" aria-hidden="true"></div><div class="p-inicio-cena-texto"><p class="p-cena-local">' + esc(hoje.charAt(0).toUpperCase() + hoje.slice(1)) + '</p><h1>' + oi + ', ' + esc(sessao.nome) + '</h1>' +
+        '<dl class="p-numeros"><div><dt>Páginas</dt><dd>' + String(vis.length).padStart(2, '0') + '</dd></div><div><dt>Cooperativas</dt><dd>03</dd></div><div><dt>Pessoas na equipe</dt><dd>' + String(Object.keys(cofre.usuarios).length).padStart(2, '0') + '</dd></div></dl></div></header>' +
+        '<h2 class="p-inicio-sub">Suas páginas</h2>' +
         '<div class="p-cartoes">' + vis.map(function (m) {
           var cores = m.marcas.map(function (k) { return MARCAS[k].cor; });
           return '<a class="p-cartao" href="#' + esc(m.id) + '" style="--c1:' + cores[0] + ';--c2:' + (cores[1] || MARCAS[m.marcas[0]].cor2) + '"><span class="p-cartao-faixa"></span><strong>' + esc(m.nome) + '</strong><span class="p-ajuda">' + esc(m.descricao || '') + '</span><small>' + esc(nomesMarcas(m.marcas)) + '</small></a>';
