@@ -10,11 +10,11 @@
   <link rel="icon" href="icone.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icone.svg">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="kit/plataforma.css?v=14">
+  <link rel="stylesheet" href="kit/plataforma.css?v=15">
 </head>
 <body>
   <div id="plataforma"></div>
-  <script src="kit/plataforma.js?v=14"></script>
+  <script src="kit/plataforma.js?v=15"></script>
   <script>
   /* Portal único: um login e um menu com todas as páginas.
      Cada página continua no próprio repositório; aqui só fica o acesso. */
@@ -37,7 +37,7 @@
       ],
       letra: 'P',
       cor: '#111111',
-      versao: '14',
+      versao: '15',
       repoSite: R + 'central-atendimento',
       cofre: 'cofre.json',
       repoDados: R + 'central-atendimento-dados',
@@ -59,8 +59,10 @@
         { id: 'ouvidorias', nome: 'Ouvidorias Cemig', descricao: 'Gerar, enviar e registrar ouvidorias', marcas: ['wattwise'],
           src: '/ouvidorias-cemig/app.html', repos: [R + 'ouvidorias-cemig-dados'], usuarios: ['Daniela', 'Paula', 'Pedro', 'Victor', 'Ytala'] },
         { id: 'distratos', nome: 'Central de Distratos', descricao: 'Termos de distrato a partir do D4Sign', marcas: ['wegen', 'smartben'],
+          planilhas: [{ id: 'cancelamentos', nome: 'CANCELAMENTOS E AUDITORIAS', dica: 'Preencha a planilha antes de gerar os termos de distrato' }],
           src: '/central-distratos/app.html', repos: [R + 'central-distratos', R + 'central-distratos-dados'], usuarios: ['Daniela', 'Paula'] },
         { id: 'auditoria', nome: 'Auditoria de Injeção', descricao: 'Injeção e consumo por instalação', marcas: ['wegen', 'smartben'],
+          planilhas: [{ id: 'cancelamentos', nome: 'CANCELAMENTOS E AUDITORIAS', dica: 'Preencha a planilha antes de gerar os extratos de auditoria' }],
           src: '/auditoria-injecao/app.html', repos: [R + 'auditoria-dados'], usuarios: ['Daniela', 'Laura', 'Paula', 'Luis', 'Guilherme'] }
       ]
     });

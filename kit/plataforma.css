@@ -509,3 +509,17 @@ a.btn-link { text-decoration: none; }
   .p-faixa-marcadagua { display: none; }
   .p-faixa-desc { font-size: .8rem; }
 }
+
+/* ===== planilha de apoio no topo da página (ex.: CANCELAMENTOS E AUDITORIAS) ===== */
+.p-planilha { display: inline-flex; align-items: center; gap: 6px; }
+.p-mod-topo .p-planilha-btn { display: inline-flex; align-items: center; gap: 8px; background: #eef7f1; border-color: #9fd0b2; color: #14532d; font-weight: 600; text-decoration: none; }
+.p-mod-topo .p-planilha-btn:hover { background: #e0f1e7; border-color: #1e874b; }
+.p-planilha-trocar { background: none; border: 0; padding: 0; color: #6b7a90; font: inherit; font-size: .78rem; text-decoration: underline; cursor: pointer; }
+.p-planilha-trocar:hover { color: #0c1f45; }
+.p-mod-acoes { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; }
+@media (max-width: 760px) { .p-planilha-btn span { max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } }
+.p-mod-topo.colorido .btn { background: #fff; border-color: #c9d4e5; color: #0c1f45; text-shadow: none; }
+.p-mod-topo.colorido .btn:hover { background: #f2f5fa; border-color: #0c1f45; }
+.p-mod-topo .btn.p-planilha-btn, .p-mod-topo.colorido .btn.p-planilha-btn { background: #eef7f1; border-color: #9fd0b2; color: #14532d; }
+.p-mod-topo .btn.p-planilha-btn:hover, .p-mod-topo.colorido .btn.p-planilha-btn:hover { background: #e0f1e7; border-color: #1e874b; }
+.p-mod-topo .p-faixa-marcadagua { right: auto; left: 52%; }

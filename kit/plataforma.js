@@ -506,10 +506,44 @@
       t.innerHTML = faixaTitulo(m.id, m.nome, m.descricao, ks);
       acoesModulo();
     }
+    // Planilhas de apoio (ex.: CANCELAMENTOS E AUDITORIAS): link guardado no repositório privado (data/links.json),
+    // aparece no topo das páginas que usam a planilha. A administradora vincula ou troca o link ali mesmo.
+    var LINKS_ARQ = 'data/links.json', links = null, carregandoLinks = null;
+    function carregarLinks() {
+      if (links) return Promise.resolve(links);
+      if (!carregandoLinks) carregandoLinks = dados.ler(LINKS_ARQ, {}).then(function (l) { links = l || {}; return links; }).catch(function () { carregandoLinks = null; return {}; });
+      return carregandoLinks;
+    }
+    var ICONE_PLANILHA = '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><rect x="4" y="2.5" width="16" height="19" rx="2.2" fill="#1e874b"/><path d="M7.5 9h9M7.5 12.5h9M7.5 16h9M12 9v7" stroke="#fff" stroke-width="1.5"/></svg>';
+    function botoesPlanilhas(m) {
+      return (m && m.planilhas || []).map(function (p) {
+        var l = links && links[p.id];
+        if (l && l.url) return '<span class="p-planilha"><a class="btn btn-peq p-planilha-btn" href="' + esc(l.url) + '" target="_blank" rel="noopener" title="' + esc(p.dica || 'Abre a planilha no Google') + '">' + ICONE_PLANILHA + '<span>Planilha ' + esc(p.nome) + '</span></a>' + (ehAdmin() ? '<button class="p-planilha-trocar" type="button" data-planilha="' + esc(p.id) + '" title="Trocar o link (só administradora)">Trocar link</button>' : '') + '</span>';
+        return ehAdmin() ? '<button class="btn btn-peq p-planilha-btn" type="button" data-planilha="' + esc(p.id) + '">' + ICONE_PLANILHA + '<span>Vincular planilha ' + esc(p.nome) + '</span></button>' : '';
+      }).join('');
+    }
+    async function trocarLinkPlanilha(id) {
+      var m = cfg.modulos.find(function (x) { return (x.planilhas || []).some(function (p) { return p.id === id; }); });
+      var p = m.planilhas.find(function (x) { return x.id === id; });
+      var atualUrl = (links && links[id] && links[id].url) || '';
+      var url = window.prompt('Cole o link da planilha ' + p.nome + ' (Google Planilhas). Vale para toda a equipe.', atualUrl);
+      if (url == null) return;
+      url = url.trim();
+      if (url && !/^https:\/\/docs\.google\.com\/spreadsheets\/d\//.test(url)) { aviso('Esse não parece um link do Google Planilhas.', 'erro'); return; }
+      try {
+        await dados.alterar(LINKS_ARQ, function (l) { l = l || {}; if (url) l[id] = { nome: p.nome, url: url, alteradoEm: new Date().toISOString() }; else delete l[id]; links = l; return l; }, 'Link da planilha ' + p.nome);
+        aviso(url ? 'Link da planilha salvo para toda a equipe.' : 'Link da planilha removido.');
+      } catch (e) { aviso('Não consegui salvar o link agora. Tente de novo.', 'erro'); }
+      acoesModulo();
+    }
     function acoesModulo() {
-      var a = apis[atual] || {}, box = $('#p-mod-acoes');
-      box.innerHTML = (a.preferencias ? '<button class="btn btn-peq" type="button" data-acao="pref">Minhas preferências</button>' : '') + (a.configuracoes ? '<button class="btn btn-peq" type="button" data-acao="conf">Configurações da página</button>' : '');
-      box.onclick = function (ev) { var b = ev.target.closest('[data-acao]'); if (!b) return; (b.dataset.acao === 'pref' ? a.preferencias : a.configuracoes)(); };
+      var a = apis[atual] || {}, box = $('#p-mod-acoes'), m = cfg.modulos.find(function (x) { return x.id === atual; });
+      box.innerHTML = botoesPlanilhas(m) + (a.preferencias ? '<button class="btn btn-peq" type="button" data-acao="pref">Minhas preferências</button>' : '') + (a.configuracoes ? '<button class="btn btn-peq" type="button" data-acao="conf">Configurações da página</button>' : '');
+      if (m && m.planilhas && !links) carregarLinks().then(function () { if (atual === m.id) acoesModulo(); });
+      box.onclick = function (ev) {
+        var pl = ev.target.closest('[data-planilha]'); if (pl) return trocarLinkPlanilha(pl.dataset.planilha);
+        var b = ev.target.closest('[data-acao]'); if (!b) return; (b.dataset.acao === 'pref' ? a.preferencias : a.configuracoes)();
+      };
     }
     function nomesMarcas(ks) { var n = ks.map(function (k) { return MARCAS[k].nome; }); return n.length > 1 ? n.slice(0, -1).join(', ') + ' e ' + n[n.length - 1] : n[0]; }
     function ajuda() {
