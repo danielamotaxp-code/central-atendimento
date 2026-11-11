@@ -86,7 +86,8 @@
   /* ======================= moldura ======================= */
   function montar() {
     ctx.conteudo().innerHTML =
-      '<div class="ca-barra"><div class="p-seg" id="ca-empresas" role="group" aria-label="Empresa"></div>' +
+      '<div class="ca-empfixa" id="ca-empfixa"><div class="p-seg" id="ca-empresas" role="group" aria-label="Empresa"></div></div>' +
+      '<div class="ca-barra">' +
       '<label class="ca-saud">Saudação <select id="ca-saudsel"><option value="auto">Automática</option><option>Bom dia</option><option>Boa tarde</option><option>Boa noite</option></select></label>' +
       '<div class="ca-busca"><input id="ca-q" type="search" placeholder="' + esc(CFG.exemploBusca || 'Buscar mensagem (ex.: protesto, distrato, saldo)') + '" aria-label="Buscar mensagem"></div>' +
       '<button class="btn btn-peq btn-primario" id="ca-nova">Nova mensagem</button><button class="btn btn-peq" id="ca-atualizar" title="Buscar alterações feitas pela equipe">Atualizar</button></div>' +
@@ -150,7 +151,7 @@
     document.documentElement.style.setProperty('--cor', (marca && marca.cor) || ctx.cfg.cor);
     $('#ca-banner').innerHTML = Plataforma.banner(empresa);
     ctx.marca([empresa]);
-    $('#ca-empresas').hidden = Object.keys(D.empresas).length < 2;
+    $('#ca-empresas').hidden = Object.keys(D.empresas).length < 2; $('#ca-empfixa').hidden = $('#ca-empresas').hidden;
     $('#ca-empresas').innerHTML = Object.keys(D.empresas).map(function (k) { return '<button type="button" data-emp="' + k + '" aria-pressed="' + (k === empresa) + '">' + esc(nomeEmp(k)) + '</button>'; }).join('');
     var sel = $('#ca-saudsel'); sel.value = saudPref(); var h = new Date().getHours(); sel.options[0].textContent = 'Automática (' + (h < 12 ? 'bom dia' : h < 18 ? 'boa tarde' : 'boa noite') + ')';
     desenharNav(); desenharTop(); desenharLista(); desenharCampos();

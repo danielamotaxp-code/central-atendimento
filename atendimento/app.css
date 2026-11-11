@@ -89,3 +89,9 @@ html.p-modulo .ca-nav { top: 72px; }
 /* a barra das empresas fica no topo da página e rola junto (não fica presa na tela) */
 .ca-barra, html.p-modulo .ca-barra { position: static; }
 html.p-modulo .ca-nav { top: 12px; }
+/* só a troca de empresa fica presa no topo ao rolar; o resto da barra rola junto */
+.ca-empfixa { position: sticky; top: 0; z-index: 16; background: var(--cartao); border-bottom: 1px solid var(--borda); padding: 8px max(20px, calc((100% - 1180px) / 2)); box-shadow: 0 2px 6px rgba(12, 31, 69, .05); }
+.ca-empfixa[hidden] { display: none; }
+.ca-barra { border-top: 0; }
+html.p-modulo .ca-nav { top: 64px; }
+@media (max-width: 800px) { .ca-empfixa { padding: 6px 12px; } }
