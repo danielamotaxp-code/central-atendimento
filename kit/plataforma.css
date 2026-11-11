@@ -340,7 +340,7 @@ a.btn-link { text-decoration: none; }
 .p-placa { position: absolute; display: block; width: var(--w); aspect-ratio: 1053 / 1697; transform-style: preserve-3d;
   transform: translate3d(calc(var(--px, 0) * var(--d) * -70px), calc(var(--py, 0) * var(--d) * -50px), 0) rotateX(var(--rx)) rotateZ(var(--rz)) rotateY(calc(var(--ry) + var(--px, 0) * 10deg));
   transition: transform .6s cubic-bezier(.2, .7, .2, 1); }
-.p-placa i { position: absolute; inset: 0; background: url("placa-solar.svg") center / 100% 100% no-repeat; border-radius: 6px; transform: translateZ(0); }
+.p-placa i { position: absolute; inset: 0; background: url("placa-solar.svg?v=12") center / 100% 100% no-repeat; border-radius: 6px; transform: translateZ(0); }
 .p-placa b { position: absolute; inset: 0; border-radius: 6px; background: linear-gradient(90deg, #8a95a6, #3a4558); transform: translateZ(-14px); box-shadow: 0 60px 80px rgba(0, 0, 0, .7); }
 .p-placa.p1 { --w: clamp(240px, 24vw, 380px); --d: 1; --rx: 52deg; --rz: -34deg; --ry: -6deg; left: 40%; top: 6%; animation: p-flutuar 7s ease-in-out infinite alternate; }
 .p-placa.p2 { --w: clamp(120px, 11vw, 170px); --d: .5; --rx: 58deg; --rz: 28deg; --ry: 12deg; left: 30%; top: 62%; filter: blur(3px); opacity: .6; animation: p-flutuar 9s ease-in-out -3s infinite alternate; }
