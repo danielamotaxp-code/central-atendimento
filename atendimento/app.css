@@ -77,3 +77,8 @@
 #ca-migrar:empty, #ca-editor:empty { display: none; }
 html.p-modulo .ca-barra { top: 0; }
 html.p-modulo .ca-nav { top: 72px; }
+/* padrão preto e branco: sem rótulos em caixa alta */
+.ca-navlabel, .ca-tag, .ca-rot { text-transform: none; letter-spacing: 0; }
+.ca-navlabel { font-size: .8rem; font-weight: 600; }
+.ca-tag { font-size: .76rem; font-weight: 600; }
+.ca-etapa h2 { font-family: var(--f-larga); font-stretch: 112%; font-weight: 600; }

@@ -212,19 +212,17 @@
 
     /* ---------- moldura ---------- */
     function heroiLogin(ks) {
-      var giro = ks.map(function (k) { return MARCAS[k].nome; }).join(' · ') + ' · energia solar · ';
-      return '<div class="p-cena" aria-hidden="true"></div>' +
-        '<div class="p-flutuantes" aria-hidden="true"><span class="p-modulo3d m1"><i></i></span><span class="p-modulo3d m2"><i></i></span><span class="p-modulo3d m3"><i></i></span></div>' +
+      return '<div class="p-palco" aria-hidden="true">' + placas() + '</div>' +
         '<header class="p-cena-topo"><div class="p-marca"><span class="p-marca-logo" aria-hidden="true">' + esc(cfg.letra) + '</span><div><strong>' + esc(cfg.nome) + '</strong><small>' + esc(cfg.subtitulo || '') + '</small></div></div>' +
         '<nav class="p-cena-marcas" aria-label="Empresas">' + ks.map(function (k) { return '<span style="--m:' + MARCAS[k].cor + '">' + esc(MARCAS[k].nome) + '</span>'; }).join('') + '</nav></header>' +
         '<div class="p-cena-titulo"><p class="p-cena-local">Minas Gerais · energia compartilhada</p><h1>' + esc(cfg.tituloLogin || cfg.nome) + '</h1><p>' + esc(cfg.fraseLogin || '') + '</p></div>';
     }
+    function placas() { return '<span class="p-placa p1"><i></i><b></b></span><span class="p-placa p2"><i></i><b></b></span><span class="p-placa p3"><i></i><b></b></span>'; }
     function seloLogin(ks) {
       var giro = ks.map(function (k) { return MARCAS[k].nome; }).join(' · ') + ' · energia solar · ';
-      return '<svg class="p-selo" viewBox="0 0 200 200" aria-hidden="true"><defs><path id="p-selo-c" d="M100,100 m-74,0 a74,74 0 1,1 148,0 a74,74 0 1,1 -148,0"/></defs>' +
-        '<g class="p-selo-giro"><text><textPath href="#p-selo-c" textLength="462" lengthAdjust="spacing">' + esc(giro.toUpperCase()) + '</textPath></text></g>' +
-        '<circle cx="100" cy="100" r="30" fill="#f7c74d"/><g stroke="#f7c74d" stroke-width="5" stroke-linecap="round">' +
-        [0, 45, 90, 135, 180, 225, 270, 315].map(function (g) { var r = g * Math.PI / 180; return '<line x1="' + (100 + Math.cos(r) * 38).toFixed(1) + '" y1="' + (100 + Math.sin(r) * 38).toFixed(1) + '" x2="' + (100 + Math.cos(r) * 48).toFixed(1) + '" y2="' + (100 + Math.sin(r) * 48).toFixed(1) + '"/>'; }).join('') + '</g></svg>';
+      return '<svg class="p-selo" viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="100" r="99" fill="#111"/><defs><path id="p-selo-c" d="M100,100 m-74,0 a74,74 0 1,1 148,0 a74,74 0 1,1 -148,0"/></defs>' +
+        '<g class="p-selo-giro"><text><textPath href="#p-selo-c" textLength="462" lengthAdjust="spacing">' + ks.map(function (k) { return '<tspan fill="' + MARCAS[k].cor2 + '">' + esc(MARCAS[k].nome.toUpperCase()) + '</tspan> · '; }).join('') + 'ENERGIA SOLAR · </textPath></text></g>' +
+        '<circle cx="100" cy="100" r="44" fill="#fff"/><g fill="#111">' + [[78, 78], [101, 78], [78, 101], [101, 101]].map(function (q) { return '<path d="M' + (q[0] + 4) + ' ' + q[1] + 'h13l4 4v13l-4 4h-13l-4-4v-13z"/>'; }).join('') + '</g></svg>';
     }
     function faixaLogin(ks) {
       return '<footer class="p-cena-faixa"><dl class="p-numeros"><div><dt>Cooperativas</dt><dd>' + String(ks.length).padStart(2, '0') + '</dd></div><div><dt>Páginas</dt><dd>' + String((cfg.modulos || []).length).padStart(2, '0') + '</dd></div><div><dt>Pessoas na equipe</dt><dd id="p-cena-pessoas">—</dd></div></dl>' +
@@ -479,11 +477,11 @@
     }
     function topoModulo(m, titulo, sub) {
       var t = $('#p-mod-titulo'), topo = $('#p-mod-topo');
-      if (!m) { t.innerHTML = '<strong>' + esc(titulo || 'Início') + '</strong><small>' + esc(sub || cfg.subtitulo || '') + '</small>'; topo.style.background = ''; topo.classList.remove('colorido'); $('#p-mod-acoes').innerHTML = ''; document.title = cfg.nome; return; }
+      if (!m) { t.innerHTML = '<strong>' + esc(titulo || 'Início') + '</strong><small>' + esc(sub || cfg.subtitulo || '') + '</small>'; topo.style.removeProperty('--linha'); topo.classList.remove('colorido'); $('#p-mod-acoes').innerHTML = ''; document.title = cfg.nome; return; }
       var ks = m.marcasAtuais || m.marcas, cores = ks.map(function (k) { return MARCAS[k].cor; });
       document.documentElement.style.setProperty('--cor', cores[0]);
       topo.classList.add('colorido');
-      topo.style.background = 'linear-gradient(110deg,' + (cores.length > 1 ? cores.join(',') : cores[0] + ',' + MARCAS[ks[0]].cor2) + ')';
+      topo.style.setProperty('--linha', 'linear-gradient(90deg,' + (cores.length > 1 ? cores.join(',') : cores[0] + ',' + MARCAS[ks[0]].cor2) + ')');
       t.innerHTML = '<strong>' + esc(m.nome) + '</strong><small>' + esc(m.descricao || '') + ' — ' + esc(nomesMarcas(ks)) + '</small>';
       acoesModulo();
     }
@@ -549,7 +547,7 @@
       var h = new Date().getHours(), oi = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
       var vis = cfg.modulos.filter(permitido);
       var hoje = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
-      box.innerHTML = '<header class="p-inicio-cena"><div class="p-cena" aria-hidden="true"></div><div class="p-inicio-cena-texto"><p class="p-cena-local">' + esc(hoje.charAt(0).toUpperCase() + hoje.slice(1)) + '</p><h1>' + oi + ', ' + esc(sessao.nome) + '</h1>' +
+      box.innerHTML = '<header class="p-inicio-cena"><div class="p-palco" aria-hidden="true">' + placas() + '</div><div class="p-inicio-cena-texto"><p class="p-cena-local">' + esc(hoje.charAt(0).toUpperCase() + hoje.slice(1)) + '</p><h1>' + oi + ', ' + esc(sessao.nome) + '</h1>' +
         '<dl class="p-numeros"><div><dt>Páginas</dt><dd>' + String(vis.length).padStart(2, '0') + '</dd></div><div><dt>Cooperativas</dt><dd>03</dd></div><div><dt>Pessoas na equipe</dt><dd>' + String(Object.keys(cofre.usuarios).length).padStart(2, '0') + '</dd></div></dl></div></header>' +
         '<h2 class="p-inicio-sub">Suas páginas</h2>' +
         '<div class="p-cartoes">' + vis.map(function (m) {
@@ -855,7 +853,7 @@
     var m = MARCAS[chave]; opcoes = opcoes || {};
     if (!m) return '';
     var zap = opcoes.whatsapp === false ? '' : '<div class="p-banner-zap">' + m.whatsapp.map(function (n) { return '<span>WhatsApp ' + esc(n) + '</span>'; }).join('') + '</div>';
-    return '<section class="p-banner' + (opcoes.compacto ? ' compacto' : '') + '" style="--marca:' + m.cor + '" aria-label="' + esc(m.nome) + '">' + ilustracao(m) +
+    return '<section class="p-banner' + (opcoes.compacto ? ' compacto' : '') + '" style="--marca:' + m.cor + '" aria-label="' + esc(m.nome) + '"><span class="p-banner-palco" aria-hidden="true"><span class="p-placa p1"><i></i><b></b></span></span>' +
       '<div class="p-banner-texto"><strong>' + esc(opcoes.titulo || m.nome) + '</strong><span>' + esc(opcoes.subtitulo || m.frase) + '</span>' + zap + '</div></section>';
   }
 
