@@ -220,9 +220,9 @@
     function placas() { return '<span class="p-placa p1"><i></i><b></b></span><span class="p-placa p2"><i></i><b></b></span><span class="p-placa p3"><i></i><b></b></span>'; }
     function seloLogin(ks) {
       var giro = ks.map(function (k) { return MARCAS[k].nome; }).join(' · ') + ' · energia solar · ';
-      return '<svg class="p-selo" viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="100" r="99" fill="#111"/><defs><path id="p-selo-c" d="M100,100 m-74,0 a74,74 0 1,1 148,0 a74,74 0 1,1 -148,0"/></defs>' +
+      return '<svg class="p-selo" viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="100" r="99" fill="#0c1f45"/><defs><path id="p-selo-c" d="M100,100 m-74,0 a74,74 0 1,1 148,0 a74,74 0 1,1 -148,0"/></defs>' +
         '<g class="p-selo-giro"><text><textPath href="#p-selo-c" textLength="462" lengthAdjust="spacing">' + ks.map(function (k) { return '<tspan fill="' + MARCAS[k].cor2 + '">' + esc(MARCAS[k].nome.toUpperCase()) + '</tspan> · '; }).join('') + 'ENERGIA SOLAR · </textPath></text></g>' +
-        '<circle cx="100" cy="100" r="44" fill="#fff"/><g fill="#111">' + [[78, 78], [101, 78], [78, 101], [101, 101]].map(function (q) { return '<path d="M' + (q[0] + 4) + ' ' + q[1] + 'h13l4 4v13l-4 4h-13l-4-4v-13z"/>'; }).join('') + '</g></svg>';
+        '<circle cx="100" cy="100" r="44" fill="#fff"/><g fill="#1d4f9a">' + [[78, 78], [101, 78], [78, 101], [101, 101]].map(function (q) { return '<path d="M' + (q[0] + 4) + ' ' + q[1] + 'h13l4 4v13l-4 4h-13l-4-4v-13z"/>'; }).join('') + '</g></svg>';
     }
     function faixaLogin() {
       return '<footer class="p-cena-faixa"><p>Acesso restrito à equipe. Esqueceu a senha? Fale com a administradora.</p><p>' + esc(cfg.rodape || '') + '</p></footer>';

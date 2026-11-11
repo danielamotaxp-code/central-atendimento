@@ -6,7 +6,7 @@
   "start_url": "/central-atendimento/",
   "scope": "/central-atendimento/",
   "display": "standalone",
-  "background_color": "#0a0a0a",
-  "theme_color": "#0a0a0a",
+  "background_color": "#081631",
+  "theme_color": "#081631",
   "icons": [{ "src": "icone.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
 }
