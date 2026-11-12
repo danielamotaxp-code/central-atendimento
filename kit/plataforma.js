@@ -143,6 +143,7 @@
   /* ======================= Google (opcional) ======================= */
   function Google(clientId) {
     var tokenAtual = null, validoAte = 0, carregando = null;
+    var DRIVE = 'https://www.googleapis.com/auth/drive', tokDrive = null, driveAte = 0;
     function carregar() {
       if (global.google && global.google.accounts && global.google.accounts.oauth2) return Promise.resolve();
       if (carregando) return carregando;
@@ -168,6 +169,41 @@
         cli.requestAccessToken({ prompt: tokenAtual ? '' : 'consent' });
       });
     }
+    // Google Drive: autorização separada, pedida só por quem envia vídeos/arquivos para uma pasta do Drive
+    async function tokenDrive(forcar) {
+      if (!forcar && tokDrive && Date.now() < driveAte) return tokDrive;
+      await carregar();
+      return new Promise(function (ok, falha) {
+        var cli = global.google.accounts.oauth2.initTokenClient({
+          client_id: clientId, scope: DRIVE, include_granted_scopes: true,
+          callback: function (resp) {
+            if (resp.error) return falha(new Error('Login do Google não concluído.'));
+            tokDrive = resp.access_token; driveAte = Date.now() + (resp.expires_in - 60) * 1000; ok(tokDrive);
+          },
+          error_callback: function () { falha(new Error('Login do Google cancelado.')); }
+        });
+        cli.requestAccessToken({ prompt: tokDrive ? '' : 'consent' });
+      });
+    }
+    // envio em partes (aceita vídeos grandes), com andamento
+    async function enviarDrive(pasta, nome, arquivo, descricao, andamento) {
+      var t = await tokenDrive();
+      var ini = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&supportsAllDrives=true&fields=id,name,webViewLink', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + t, 'Content-Type': 'application/json; charset=UTF-8', 'X-Upload-Content-Type': arquivo.type || 'application/octet-stream', 'X-Upload-Content-Length': String(arquivo.size) },
+        body: JSON.stringify({ name: nome, parents: [pasta], description: descricao || '', mimeType: arquivo.type || undefined })
+      });
+      if (!ini.ok) { var m = ''; try { m = (await ini.json()).error.message; } catch (e) { /* */ } throw new Error(ini.status === 404 ? 'Não achei a pasta do Drive (ou sua conta Google não tem acesso a ela).' : ini.status === 403 ? 'Sua conta Google não pode gravar nessa pasta do Drive. Peça acesso de editor.' : 'Google Drive: ' + (m || ini.status)); }
+      var destino = ini.headers.get('Location');
+      if (!destino) throw new Error('Google Drive não liberou o envio.');
+      return new Promise(function (ok, falha) {
+        var x = new XMLHttpRequest(); x.open('PUT', destino);
+        x.upload.onprogress = function (e) { if (andamento && e.lengthComputable) andamento(e.loaded / e.total); };
+        x.onload = function () { if (x.status >= 200 && x.status < 300) { try { ok(JSON.parse(x.responseText)); } catch (e) { ok({}); } } else falha(new Error('Google Drive: envio interrompido (' + x.status + ').')); };
+        x.onerror = function () { falha(new Error('Google Drive: sem conexão durante o envio.')); };
+        x.send(arquivo);
+      });
+    }
     async function sheets(metodo, url, corpo) {
       var t = await token();
       var r = await fetch('https://sheets.googleapis.com/v4/spreadsheets/' + url, { method: metodo, headers: Object.assign({ Authorization: 'Bearer ' + t }, corpo ? { 'Content-Type': 'application/json' } : {}), body: corpo ? JSON.stringify(corpo) : undefined });
@@ -176,6 +212,11 @@
     }
     return {
       conectado: function () { return !!tokenAtual && Date.now() < validoAte; },
+      /** Google Drive (pasta de vídeos etc.) */
+      driveConectado: function () { return !!tokDrive && Date.now() < driveAte; },
+      conectarDrive: function () { return tokenDrive(true); },
+      enviarDrive: enviarDrive,
+      lixeiraDrive: async function (id) { var t = await tokenDrive(); var r = await fetch('https://www.googleapis.com/drive/v3/files/' + encodeURIComponent(id) + '?supportsAllDrives=true', { method: 'PATCH', headers: { Authorization: 'Bearer ' + t, 'Content-Type': 'application/json' }, body: JSON.stringify({ trashed: true }) }); if (!r.ok) throw new Error('Google Drive: ' + r.status); },
       entrar: function () { return token(true); },
       /** ID da planilha a partir do link. */
       idDoLink: function (link) { var m = String(link).match(/\/d\/([a-zA-Z0-9-_]{20,})/); return m ? m[1] : String(link).trim(); },
