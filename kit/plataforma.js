@@ -193,7 +193,19 @@
         headers: { Authorization: 'Bearer ' + t, 'Content-Type': 'application/json; charset=UTF-8', 'X-Upload-Content-Type': arquivo.type || 'application/octet-stream', 'X-Upload-Content-Length': String(arquivo.size) },
         body: JSON.stringify({ name: nome, parents: [pasta], description: descricao || '', mimeType: arquivo.type || undefined })
       });
-      if (!ini.ok) { var m = ''; try { m = (await ini.json()).error.message; } catch (e) { /* */ } throw new Error(ini.status === 404 ? 'Não achei a pasta do Drive (ou sua conta Google não tem acesso a ela).' : ini.status === 403 ? 'Sua conta Google não pode gravar nessa pasta do Drive. Peça acesso de editor.' : 'Google Drive: ' + (m || ini.status)); }
+      if (!ini.ok) {
+        var m = '', motivo = '';
+        try { var er = (await ini.json()).error || {}; m = er.message || ''; motivo = ((er.errors || [])[0] || {}).reason || (((er.details || [])[0] || {}).reason) || ''; } catch (e) { /* sem corpo */ }
+        var txt = m + ' ' + motivo;
+        var msg;
+        if (/has not been used|is disabled|accessNotConfigured|SERVICE_DISABLED/i.test(txt)) msg = 'A API do Google Drive não está ativada no projeto do Google Cloud da plataforma. Quem administra o projeto precisa ativá-la (APIs e serviços → Google Drive API → Ativar).';
+        else if (/insufficient.*scope|ACCESS_TOKEN_SCOPE_INSUFFICIENT|insufficientPermissions/i.test(txt)) { tokDrive = null; driveAte = 0; msg = 'Na janela do Google, a permissão do Drive não foi marcada. Clique de novo em Conectar Google Drive e marque a caixa “Ver, editar, criar e excluir arquivos do Google Drive”.'; }
+        else if (ini.status === 401) { tokDrive = null; driveAte = 0; msg = 'O login do Google expirou. Clique em Conectar Google Drive de novo.'; }
+        else if (ini.status === 404) msg = 'Não achei a pasta do Drive (ou sua conta Google não tem acesso a ela).';
+        else if (ini.status === 403) msg = 'O Google recusou gravar na pasta do Drive' + (m ? ': ' + m : '.');
+        else msg = 'Google Drive: ' + (m || ini.status);
+        throw new Error(msg);
+      }
       var destino = ini.headers.get('Location');
       if (!destino) throw new Error('Google Drive não liberou o envio.');
       return new Promise(function (ok, falha) {
