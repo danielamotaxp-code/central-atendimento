@@ -27,10 +27,10 @@
     "victor": {
       "nome": "Victor",
       "papel": "usuario",
-      "salt": "Z0pDqRgcmSqQcj8rEXPm2w==",
-      "iv": "SAVAGOf/RGBbt1c9",
-      "chave": "/49uuEA4A+jtGgRadujy4n8KRR4kotm9IFmmvZlX/YvlRj31aUkWmb1ASt4Wde7l",
-      "senhaPadrao": true
+      "salt": "FngSkkZqlOpWHqAknUgPgw==",
+      "iv": "lQQN7LtLpssHCVbv",
+      "chave": "PPoprljgfNcC3vSxPAJ1LRbLu/zI1JxnNP+S3EyvzxFRe8yin6A70zwmV3Tg4PDT",
+      "senhaPadrao": false
     },
     "laura": {
       "nome": "Laura",
@@ -95,5 +95,5 @@
   },
   "versao": 2,
   "plataforma": "plataforma",
-  "atualizadoEm": "2026-11-11T18:16:26.464Z"
+  "atualizadoEm": "2026-11-16T12:35:28.618Z"
 }
