@@ -22,16 +22,20 @@
   function reclamacaoDe(v) { var m = String(v || '').match(/reclama\S*\s*(?:n\S*\s*)?(\d+)/i); return m ? +m[1] : null; }
   function aspas(t) { return "'" + String(t).replace(/'/g, "''") + "'"; }
 
-  function escolher(registros, inst, recl, desde) {
+  var NAO_REG = 'Não registrada na plataforma';
+  function ehProt(h) { return /^protocolo( da)? ouvidoria$|^protocolo$/.test(norm(h)); }
+  function escolher(registros, inst, recl, desde, prot) {
     var rs = registros.filter(function (r) {
-      return chave(r.instalacao) === inst && (recl == null || recl.indexOf(+r.reclamacao) >= 0) && String(r.criadoEm || '').slice(0, 10) >= (desde || '');
+      return (inst ? chave(r.instalacao) === inst : (prot && chave(r.protocolo) === prot)) && (recl == null || recl.indexOf(+r.reclamacao) >= 0) && String(r.criadoEm || '').slice(0, 10) >= (desde || '');
     }).sort(function (a, b) { return String(b.criadoEm || '').localeCompare(String(a.criadoEm || '')); });
     return rs.filter(function (r) { return r.status !== 'pendente'; })[0] || rs[0] || null;
   }
 
   async function umaAba(g, pid, folha, valores, p, registros, so) {
     var m = valores || [], pedidos = [], linhas = 0, cabecalho = [];
+    // cabeçalho: linha com a instalação (ou, sem ela, com o protocolo)
     var hl = m.findIndex(function (row) { return (row || []).some(ehInst); });
+    if (hl < 0) hl = m.findIndex(function (row) { return (row || []).some(ehProt); });
     if (hl < 0) return 0;
     var cab = m[hl].slice(), ci = cab.findIndex(ehInst);
     var achar = function (re) { return cab.findIndex(function (h) { return re.test(norm(h)); }); };
@@ -66,13 +70,19 @@
     var sid = folha.properties.sheetId;
     var cel = function (lin, col, v) { pedidos.push({ updateCells: { range: { sheetId: sid, startRowIndex: lin, endRowIndex: lin + 1, startColumnIndex: col, endColumnIndex: col + 1 }, rows: [{ values: [{ userEnteredValue: { stringValue: String(v) } }] }], fields: 'userEnteredValue' } }); };
     for (var j = hl + 1; j < m.length; j++) {
-      var row = m[j] || [], inst = chave(row[ci]);
-      if (!inst || (so && !so[inst])) continue;
+      var row = m[j] || [], inst = ci >= 0 ? chave(row[ci]) : '';
+      var protPlan = chave(row[cp]); if (protPlan.length < 6) protPlan = '';
+      if (!inst && !protPlan) continue;
+      if (so && !(inst && so[inst]) && !(protPlan && so['p' + protPlan])) continue;
       var recl = null;
       if (fixas.length) recl = fixas;
       else if (cr >= 0) { var n = reclamacaoDe(row[cr]); if (n == null) continue; recl = [n]; }
-      var r = escolher(registros, inst, recl, p.desde);
-      if (!r) continue;
+      var r = escolher(registros, inst, recl, p.desde, protPlan) || (inst && protPlan ? escolher(registros, '', recl, p.desde, protPlan) : null);
+      if (!r) {
+        // tem protocolo na planilha, mas a ouvidoria não está registrada na plataforma
+        if (protPlan && !so && String(row[cs] || '') !== NAO_REG) { cel(j, cs, NAO_REG); linhas++; }
+        continue;
+      }
       var pend = r.status === 'pendente', mudou = false;
       var protAtual = String(row[cp] == null ? '' : row[cp]).trim();
       var prot = pend ? (protAtual && protAtual.toLowerCase() !== 'erro' ? null : 'Erro') : (r.protocolo || null);
@@ -103,6 +113,7 @@
   async function sincronizar(opts) {
     var g = opts.google, so = null, saida = [];
     if (opts.instalacoes) { so = {}; opts.instalacoes.forEach(function (i) { var k = chave(i); if (k) so[k] = true; }); }
+    if (opts.protocolos) { so = so || {}; opts.protocolos.forEach(function (i) { var k = chave(i); if (k) so['p' + k] = true; }); }
     for (var i = 0; i < (opts.planilhas || []).length; i++) {
       var p = opts.planilhas[i], pid = idDoLink(p.link), tot = 0;
       if (!pid) continue;
