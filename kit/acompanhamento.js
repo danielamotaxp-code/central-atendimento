@@ -95,7 +95,7 @@
       var r = escolher(registros, inst, recl, p.desde, protPlan) || (inst && protPlan ? escolher(registros, '', recl, p.desde, protPlan) : null);
       if (!r) {
         // tem protocolo na planilha, mas a ouvidoria não está registrada na plataforma
-        if (protPlan && !so && String(row[cs] || '') !== NAO_REG) {
+        if (protPlan && !so && registros.length > 20 && String(row[cs] || '') !== NAO_REG) {
           var rf = cr >= 0 ? cr : ci;
           if (!p.colorir && rf >= 0 && rf !== cs) pedidos.push({ copyPaste: { source: { sheetId: sid, startRowIndex: j, endRowIndex: j + 1, startColumnIndex: rf, endColumnIndex: rf + 1 },
             destination: { sheetId: sid, startRowIndex: j, endRowIndex: j + 1, startColumnIndex: cs, endColumnIndex: cs + 1 }, pasteType: 'PASTE_FORMAT' } });
@@ -138,6 +138,8 @@
    */
   async function sincronizar(opts) {
     var g = opts.google, so = null, saida = [];
+    // sem a lista de ouvidorias da plataforma não dá para saber quem está registrado: não mexe em nada
+    if (!opts.registros || !opts.registros.length) throw new Error('A lista de ouvidorias da plataforma não carregou. Recarregue a página e tente de novo.');
     if (opts.instalacoes) { so = {}; opts.instalacoes.forEach(function (i) { var k = chave(i); if (k) so[k] = true; }); }
     if (opts.protocolos) { so = so || {}; opts.protocolos.forEach(function (i) { var k = chave(i); if (k) so['p' + k] = true; }); }
     for (var i = 0; i < (opts.planilhas || []).length; i++) {
