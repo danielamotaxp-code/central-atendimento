@@ -42,15 +42,17 @@
       var g = { t: q.access_token, a: ate };
       if (esc.indexOf('/auth/drive') >= 0) { g.d = q.access_token; g.da = ate; }
       localStorage.setItem('plat_google_' + CLIENTE_GOOGLE.split('-')[0], JSON.stringify(g));
-      history.replaceState(null, '', location.pathname + location.search + (q.state && q.state.charAt(0) === '#' ? q.state : ''));
+      history.replaceState(null, '', location.pathname + location.search + (q.state ? '#' + q.state.replace(/^#/, '') : ''));
     } catch (e) { /* nada */ }
   })();
   function urlGoogle(clientId) {
     var volta = location.origin + '/central-atendimento/';
     var onde = ''; try { onde = global.top.location.hash || ''; } catch (e) { onde = location.hash || ''; }
-    return 'https://accounts.google.com/o/oauth2/v2/auth?client_id=' + encodeURIComponent(clientId) +
-      '&redirect_uri=' + encodeURIComponent(volta) + '&response_type=token&include_granted_scopes=true&prompt=select_account' +
-      '&scope=' + encodeURIComponent(ESC_SHEETS + ' ' + ESC_DRIVE) + '&state=' + encodeURIComponent(onde);
+    // sem "#" no state: a tela de aviso do Google ("app não verificado") perde os parâmetros quando aparece "#"
+    var st = String(onde || '').replace(/^#/, '').replace(/[^\w\/-]/g, '');
+    return 'https://accounts.google.com/o/oauth2/v2/auth?response_type=token&client_id=' + encodeURIComponent(clientId) +
+      '&redirect_uri=' + encodeURIComponent(volta) + '&scope=' + encodeURIComponent(ESC_SHEETS + ' ' + ESC_DRIVE) +
+      (st ? '&state=' + st : '');
   }
 
   /* ======================= utilidades ======================= */
