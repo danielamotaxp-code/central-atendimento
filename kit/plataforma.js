@@ -28,6 +28,30 @@
   var enc = new TextEncoder(), dec = new TextDecoder();
   var CARGA = Date.now().toString(36); // cada vez que o portal abre, as páginas vêm na versão mais nova
   var CLIENTE_GOOGLE = '838793704461-g3e0mreo44lccsthsnk3fubhegrqfr9g.apps.googleusercontent.com';
+  var ESC_SHEETS = 'https://www.googleapis.com/auth/spreadsheets', ESC_DRIVE = 'https://www.googleapis.com/auth/drive';
+
+  /* Conectar Google pela página do Google (sem janela): volta para o portal com o acesso no endereço.
+     Guarda o acesso (1 hora) e devolve o endereço para a página em que a pessoa estava. */
+  (function voltaDoGoogle() {
+    try {
+      if (global.top !== global) return;
+      var h = String(location.hash || '');
+      if (h.indexOf('access_token=') < 0) return;
+      var q = {}; h.slice(1).split('&').forEach(function (p) { var i = p.indexOf('='); if (i > 0) q[decodeURIComponent(p.slice(0, i))] = decodeURIComponent(p.slice(i + 1).replace(/\+/g, ' ')); });
+      var ate = Date.now() + (Number(q.expires_in || 3600) - 60) * 1000, esc = String(q.scope || '');
+      var g = { t: q.access_token, a: ate };
+      if (esc.indexOf('/auth/drive') >= 0) { g.d = q.access_token; g.da = ate; }
+      localStorage.setItem('plat_google_' + CLIENTE_GOOGLE.split('-')[0], JSON.stringify(g));
+      history.replaceState(null, '', location.pathname + location.search + (q.state && q.state.charAt(0) === '#' ? q.state : ''));
+    } catch (e) { /* nada */ }
+  })();
+  function urlGoogle(clientId) {
+    var volta = location.origin + '/central-atendimento/';
+    var onde = ''; try { onde = global.top.location.hash || ''; } catch (e) { onde = location.hash || ''; }
+    return 'https://accounts.google.com/o/oauth2/v2/auth?client_id=' + encodeURIComponent(clientId) +
+      '&redirect_uri=' + encodeURIComponent(volta) + '&response_type=token&include_granted_scopes=true&prompt=select_account' +
+      '&scope=' + encodeURIComponent(ESC_SHEETS + ' ' + ESC_DRIVE) + '&state=' + encodeURIComponent(onde);
+  }
 
   /* ======================= utilidades ======================= */
   function $(s, r) { return (r || document).querySelector(s); }
@@ -258,6 +282,8 @@
       enviarDrive: enviarDrive,
       lixeiraDrive: async function (id) { var t = await tokenDrive(); var r = await fetch('https://www.googleapis.com/drive/v3/files/' + encodeURIComponent(id) + '?supportsAllDrives=true', { method: 'PATCH', headers: { Authorization: 'Bearer ' + t, 'Content-Type': 'application/json' }, body: JSON.stringify({ trashed: true }) }); if (!r.ok) throw new Error('Google Drive: ' + r.status); },
       entrar: function () { return token(true); },
+      /** conecta indo para a página do Google e voltando (funciona mesmo quando o navegador atrapalha a janela do Google) */
+      entrarPelaPagina: function () { try { global.top.location.href = urlGoogle(clientId); } catch (e) { location.href = urlGoogle(clientId); } },
       /** token atual do Google (planilhas), para as páginas que têm a própria integração usarem a mesma conexão */
       token: function () { if (!(tokenAtual && Date.now() < validoAte)) lerG(); return !!tokenAtual && Date.now() < validoAte ? tokenAtual : null; },
       /** ID da planilha a partir do link. */
