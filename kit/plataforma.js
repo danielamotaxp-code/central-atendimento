@@ -230,6 +230,8 @@
       enviarDrive: enviarDrive,
       lixeiraDrive: async function (id) { var t = await tokenDrive(); var r = await fetch('https://www.googleapis.com/drive/v3/files/' + encodeURIComponent(id) + '?supportsAllDrives=true', { method: 'PATCH', headers: { Authorization: 'Bearer ' + t, 'Content-Type': 'application/json' }, body: JSON.stringify({ trashed: true }) }); if (!r.ok) throw new Error('Google Drive: ' + r.status); },
       entrar: function () { return token(true); },
+      /** token atual do Google (planilhas), para as páginas que têm a própria integração usarem a mesma conexão */
+      token: function () { return !!tokenAtual && Date.now() < validoAte ? tokenAtual : null; },
       /** ID da planilha a partir do link. */
       idDoLink: function (link) { var m = String(link).match(/\/d\/([a-zA-Z0-9-_]{20,})/); return m ? m[1] : String(link).trim(); },
       planilha: function (id) { return sheets('GET', id + '?fields=properties.title,sheets.properties'); },
