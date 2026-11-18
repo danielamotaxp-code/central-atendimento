@@ -61,6 +61,9 @@
       if (folha.properties.gridProperties && folha.properties.gridProperties.columnCount < precisa)
         // deixa colunas em branco sobrando no fim, para a planilha continuar rolando para a direita
         cabecalho.push({ appendDimension: { sheetId: folha.properties.sheetId, dimension: 'COLUMNS', length: precisa - folha.properties.gridProperties.columnCount + 10 } });
+      // as colunas em branco do fim ficam sem cor nem borda (o Google copia a formatação da última coluna)
+      if (folha.properties.gridProperties && folha.properties.gridProperties.columnCount < precisa)
+        cabecalho.push({ repeatCell: { range: { sheetId: folha.properties.sheetId, startColumnIndex: precisa, endColumnIndex: precisa + 10 }, cell: {}, fields: 'userEnteredFormat' } });
       novas.forEach(function (x) {
         cabecalho.push({ updateCells: { range: { sheetId: folha.properties.sheetId, startRowIndex: hl, endRowIndex: hl + 1, startColumnIndex: x[0], endColumnIndex: x[0] + 1 },
           rows: [{ values: [{ userEnteredValue: { stringValue: x[1] } }] }], fields: 'userEnteredValue' } });
