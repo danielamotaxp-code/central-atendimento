@@ -75,7 +75,9 @@
     // bordinhas nas colunas da ouvidoria (como a equipe faz na planilha)
     var bloco = [cc, cs, cp, cd, cl], b0 = Math.min.apply(null, bloco), b1 = Math.max.apply(null, bloco) + 1;
     var LINHA = { style: 'SOLID', width: 1 };
-    var bordas = function (l0, l1, c0, c1) { pedidos.push({ updateBorders: { range: { sheetId: sid, startRowIndex: l0, endRowIndex: l1, startColumnIndex: c0, endColumnIndex: c1 },
+    var centro = function (l0, l1, c0, c1) { pedidos.push({ repeatCell: { range: { sheetId: sid, startRowIndex: l0, endRowIndex: l1, startColumnIndex: c0, endColumnIndex: c1 },
+      cell: { userEnteredFormat: { horizontalAlignment: 'CENTER', textFormat: { bold: false } } }, fields: 'userEnteredFormat.horizontalAlignment,userEnteredFormat.textFormat.bold' } }); };
+    var bordas = function (l0, l1, c0, c1) { centro(l0, l1, c0, c1); pedidos.push({ updateBorders: { range: { sheetId: sid, startRowIndex: l0, endRowIndex: l1, startColumnIndex: c0, endColumnIndex: c1 },
       top: LINHA, bottom: LINHA, left: LINHA, right: LINHA, innerHorizontal: LINHA, innerVertical: LINHA } }); };
     if (novas.length) {
       var ult = m.length; while (ult > hl + 1 && !(m[ult - 1] || []).some(function (v) { return String(v == null ? '' : v).trim(); })) ult--;
