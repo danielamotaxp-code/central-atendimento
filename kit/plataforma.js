@@ -27,7 +27,7 @@
   var API = 'https://api.github.com';
   var enc = new TextEncoder(), dec = new TextDecoder();
   var CARGA = Date.now().toString(36); // cada vez que o portal abre, as páginas vêm na versão mais nova
-  var CLIENTE_GOOGLE = '164834594868-vaihaied48tm370kpkp6km6fagjcasog.apps.googleusercontent.com';
+  var CLIENTE_GOOGLE = '838793704461-g3e0mreo44lccsthsnk3fubhegrqfr9g.apps.googleusercontent.com';
 
   /* ======================= utilidades ======================= */
   function $(s, r) { return (r || document).querySelector(s); }
