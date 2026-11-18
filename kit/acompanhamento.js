@@ -5,8 +5,8 @@
  *  - acha o cabeçalho pela coluna da instalação;
  *  - reclamacoes: [7, 8] → só valem ouvidorias dessas reclamações; sem isso, se alguma coluna tem "Reclamação N"
  *    nas linhas, vale a reclamação de cada linha ("-" = sem ouvidoria); sem coluna, vale qualquer reclamação;
- *  - preenche "Protocolo Ouvidoria" (ou "Erro" quando deu problema no site), "Colaborador" (se vazio) e o link
- *    "Ouvidoria na plataforma" (cria essas colunas no fim do cabeçalho se não existirem);
+ *  - preenche, como na planilha das faturas: "Ouvidoria" (Enviada / Não enviada), "Protocolo Ouvidoria" (ou "Erro"),
+ *    "Data da ouvidoria", "Colaborador" (se vazio) e o link "Ouvidoria na plataforma" (cria as colunas que faltam no fim);
  *  - pinta a linha de verde (enviada) ou laranja (erro) só nas planilhas marcadas com colorir.
  * Usa a conexão com o Google da plataforma (PLAT.google: planilha, ler, lote).
  */
@@ -30,13 +30,14 @@
   }
 
   async function umaAba(g, pid, folha, valores, p, registros, so) {
-    var m = valores || [], pedidos = [], linhas = 0;
+    var m = valores || [], pedidos = [], linhas = 0, cabecalho = [];
     var hl = m.findIndex(function (row) { return (row || []).some(ehInst); });
     if (hl < 0) return 0;
     var cab = m[hl].slice(), ci = cab.findIndex(ehInst);
     var achar = function (re) { return cab.findIndex(function (h) { return re.test(norm(h)); }); };
     var cp = achar(/^protocolo( da)? ouvidoria$/); if (cp < 0) cp = achar(/^protocolo$/);
     var cc = achar(/^colaborador$/), cl = achar(/^ouvidoria na plataforma$/);
+    var cs = achar(/^ouvidoria$/), cd = achar(/^data da ouvidoria$/);
     // coluna com "Reclamação N" nas linhas (ex.: "situação" ou "Observação 2")
     var fixas = (p.reclamacoes || []).map(Number).filter(function (n) { return !isNaN(n); });
     var cr = -1, melhor = 0;
@@ -46,18 +47,19 @@
     }
     // colunas que faltam vão para o fim do cabeçalho
     var novas = [];
-    [['Protocolo Ouvidoria', 'cp'], ['Colaborador', 'cc'], ['Ouvidoria na plataforma', 'cl']].forEach(function (x) {
-      var atual = x[1] === 'cp' ? cp : x[1] === 'cc' ? cc : cl;
-      if (atual < 0) { var n = cab.length; cab.push(x[0]); novas.push([n, x[0]]); if (x[1] === 'cp') cp = n; else if (x[1] === 'cc') cc = n; else cl = n; }
+    var idx = { cp: cp, cc: cc, cs: cs, cd: cd, cl: cl };
+    [['Colaborador', 'cc'], ['Ouvidoria', 'cs'], ['Protocolo Ouvidoria', 'cp'], ['Data da ouvidoria', 'cd'], ['Ouvidoria na plataforma', 'cl']].forEach(function (x) {
+      if (idx[x[1]] < 0) { var n = cab.length; cab.push(x[0]); novas.push([n, x[0]]); idx[x[1]] = n; }
     });
+    cp = idx.cp; cc = idx.cc; cs = idx.cs; cd = idx.cd; cl = idx.cl;
     var precisa = cab.length;
     if (novas.length) {
       if (folha.properties.gridProperties && folha.properties.gridProperties.columnCount < precisa)
-        pedidos.push({ appendDimension: { sheetId: folha.properties.sheetId, dimension: 'COLUMNS', length: precisa - folha.properties.gridProperties.columnCount } });
+        cabecalho.push({ appendDimension: { sheetId: folha.properties.sheetId, dimension: 'COLUMNS', length: precisa - folha.properties.gridProperties.columnCount } });
       novas.forEach(function (x) {
-        pedidos.push({ updateCells: { range: { sheetId: folha.properties.sheetId, startRowIndex: hl, endRowIndex: hl + 1, startColumnIndex: x[0], endColumnIndex: x[0] + 1 },
+        cabecalho.push({ updateCells: { range: { sheetId: folha.properties.sheetId, startRowIndex: hl, endRowIndex: hl + 1, startColumnIndex: x[0], endColumnIndex: x[0] + 1 },
           rows: [{ values: [{ userEnteredValue: { stringValue: x[1] } }] }], fields: 'userEnteredValue' } });
-        if (x[0] > 0) pedidos.push({ copyPaste: { source: { sheetId: folha.properties.sheetId, startRowIndex: hl, endRowIndex: hl + 1, startColumnIndex: x[0] - 1, endColumnIndex: x[0] },
+        if (x[0] > 0) cabecalho.push({ copyPaste: { source: { sheetId: folha.properties.sheetId, startRowIndex: hl, endRowIndex: hl + 1, startColumnIndex: x[0] - 1, endColumnIndex: x[0] },
           destination: { sheetId: folha.properties.sheetId, startRowIndex: hl, endRowIndex: hl + 1, startColumnIndex: x[0], endColumnIndex: x[0] + 1 }, pasteType: 'PASTE_FORMAT' } });
       });
     }
@@ -76,6 +78,10 @@
       var prot = pend ? (protAtual && protAtual.toLowerCase() !== 'erro' ? null : 'Erro') : (r.protocolo || null);
       if (prot != null && protAtual !== prot) { cel(j, cp, prot); mudou = true; }
       if (!String(row[cc] || '').trim() && r.responsavel) { cel(j, cc, r.responsavel); mudou = true; }
+      var sit = pend ? 'Não enviada (problema no site)' : 'Enviada';
+      if (String(row[cs] || '') !== sit) { cel(j, cs, sit); mudou = true; }
+      var dt = br((pend ? r.ultimaTentativa : r.dataAbertura) || r.criadoEm);
+      if (dt && String(row[cd] || '') !== dt) { cel(j, cd, dt); mudou = true; }
       if (String(row[cl] || '') !== 'Abrir ouvidoria') {
         pedidos.push({ updateCells: { range: { sheetId: sid, startRowIndex: j, endRowIndex: j + 1, startColumnIndex: cl, endColumnIndex: cl + 1 },
           rows: [{ values: [{ userEnteredValue: { stringValue: 'Abrir ouvidoria' }, textFormatRuns: [{ startIndex: 0, format: { link: { uri: PORTAL + r.id } } }] }] }], fields: 'userEnteredValue,textFormatRuns' } });
@@ -85,7 +91,8 @@
         cell: { userEnteredFormat: { backgroundColor: pend ? LARANJA : VERDE } }, fields: 'userEnteredFormat.backgroundColor' } });
       if (mudou) linhas++;
     }
-    if (pedidos.length) await g.lote(pid, pedidos);
+    // colunas novas só entram quando alguma linha vai ser preenchida
+    if (linhas) await g.lote(pid, cabecalho.concat(pedidos));
     return linhas;
   }
 
