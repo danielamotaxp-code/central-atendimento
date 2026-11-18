@@ -141,6 +141,14 @@
   }
 
   /* ======================= Google (opcional) ======================= */
+  // explica em palavras simples por que o login do Google não foi concluído
+  function motivoGoogle(tipo, desc) {
+    var t = String(tipo || '');
+    if (t === 'popup_failed_to_open') return 'O navegador bloqueou a janela do Google. Libere pop-ups para este site (ícone na barra de endereço) e clique de novo em Conectar Google.';
+    if (t === 'popup_closed') return 'A janela do Google foi fechada antes de terminar. Clique de novo em Conectar Google e vá até o fim (escolher a conta e Permitir).';
+    if (t === 'access_denied') return 'O Google não liberou o acesso para esta conta (' + (desc || 'acesso negado') + '). Se apareceu "Acesso bloqueado" ou "app em teste", a conta precisa ser liberada no projeto do Google da plataforma.';
+    return 'Login do Google não concluído' + (t ? ' (' + t + (desc ? ': ' + desc : '') + ')' : '') + '.';
+  }
   function Google(clientId) {
     var tokenAtual = null, validoAte = 0, carregando = null;
     var DRIVE = 'https://www.googleapis.com/auth/drive', tokDrive = null, driveAte = 0;
@@ -161,10 +169,10 @@
         var cli = global.google.accounts.oauth2.initTokenClient({
           client_id: clientId, scope: 'https://www.googleapis.com/auth/spreadsheets',
           callback: function (resp) {
-            if (resp.error) return falha(new Error('Login do Google não concluído.'));
+            if (resp.error) return falha(new Error(motivoGoogle(resp.error, resp.error_description)));
             tokenAtual = resp.access_token; validoAte = Date.now() + (resp.expires_in - 60) * 1000; ok(tokenAtual);
           },
-          error_callback: function () { falha(new Error('Login do Google cancelado.')); }
+          error_callback: function (e) { falha(new Error(motivoGoogle(e && e.type))); }
         });
         cli.requestAccessToken({ prompt: tokenAtual ? '' : 'consent' });
       });
