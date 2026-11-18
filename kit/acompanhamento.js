@@ -19,6 +19,8 @@
   function idDoLink(l) { var m = String(l || '').match(/\/d\/([\w-]{20,})/); return m ? m[1] : ''; }
   function br(iso) { var p = String(iso || '').slice(0, 10).split('-'); return p.length === 3 ? p[2] + '/' + p[1] + '/' + p[0] : ''; }
   function ehInst(h) { return /^(n|no|n o)?\s*(numero\s*(da\s*)?)?instalacao$/.test(norm(h)); }
+  // qualquer coluna de instalação (ex.: "Instalação do cliente" e "Instalação da usina")
+  function temInst(h) { return ehInst(h) || /(^|\s)instalacao(\s|$)/.test(norm(h)); }
   function reclamacaoDe(v) { var m = String(v || '').match(/reclama\S*\s*(?:n\S*\s*)?(\d+)/i); return m ? +m[1] : null; }
   // texto da coluna "Retorno da Cemig" (último retorno que não é só a confirmação do registro)
   var RET_TXT = { pedido: 'Sim — a Cemig pediu algo', aguardando: 'Sim — aguardando a Cemig', resolvido: 'Sim — respondido' };
@@ -43,10 +45,12 @@
   async function umaAba(g, pid, folha, valores, p, registros, so) {
     var m = valores || [], pedidos = [], linhas = 0, cabecalho = [];
     // cabeçalho: linha com a instalação (ou, sem ela, com o protocolo)
-    var hl = m.findIndex(function (row) { return (row || []).some(ehInst); });
+    var hl = m.findIndex(function (row) { return (row || []).some(temInst); });
     if (hl < 0) hl = m.findIndex(function (row) { return (row || []).some(ehProt); });
     if (hl < 0) return 0;
     var cab = m[hl].slice(), ci = cab.findIndex(ehInst);
+    var insCols = []; cab.forEach(function (h, k) { if (temInst(h)) insCols.push(k); });
+    if (ci < 0) ci = insCols[0];
     var achar = function (re) { return cab.findIndex(function (h) { return re.test(norm(h)); }); };
     var cp = achar(/^protocolo( da)? ouvidoria$/); if (cp < 0) cp = achar(/^protocolo$/);
     var cc = achar(/^colaborador$/), cl = achar(/^ouvidoria na plataforma$/);
@@ -96,14 +100,19 @@
     }
     var cel = function (lin, col, v) { pedidos.push({ updateCells: { range: { sheetId: sid, startRowIndex: lin, endRowIndex: lin + 1, startColumnIndex: col, endColumnIndex: col + 1 }, rows: [{ values: [{ userEnteredValue: { stringValue: String(v) } }] }], fields: 'userEnteredValue' } }); };
     for (var j = hl + 1; j < m.length; j++) {
-      var row = m[j] || [], inst = ci >= 0 ? chave(row[ci]) : '';
+      var row = m[j] || [];
+      var insts = insCols.map(function (k) { return chave(row[k]); }).filter(function (x) { return x.length >= 6; });
+      var inst = insts[0] || '';
       var protPlan = chave(row[cp]); if (protPlan.length < 6) protPlan = '';
       if (!inst && !protPlan) continue;
-      if (so && !(inst && so[inst]) && !(protPlan && so['p' + protPlan])) continue;
+      if (so && !insts.some(function (x) { return so[x]; }) && !(protPlan && so['p' + protPlan])) continue;
       var recl = null;
       if (fixas.length) recl = fixas;
       else if (cr >= 0) { var n = reclamacaoDe(row[cr]); if (n == null) continue; recl = [n]; }
-      var r = escolher(registros, inst, recl, p.desde, protPlan) || (inst && protPlan ? escolher(registros, '', recl, p.desde, protPlan) : null);
+      var r = null;
+      for (var q = 0; q < insts.length && !r; q++) r = escolher(registros, insts[q], recl, p.desde, protPlan);
+      if (!r && !insts.length) r = escolher(registros, '', recl, p.desde, protPlan);
+      if (!r && insts.length && protPlan) r = escolher(registros, '', recl, p.desde, protPlan);
       if (!r) {
         // tem protocolo na planilha, mas a ouvidoria não está registrada na plataforma
         if (!p.apenasRetorno && protPlan && !so && registros.length > 20 && String(row[cs] || '') !== NAO_REG) {
