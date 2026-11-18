@@ -5,7 +5,7 @@
  */
 (function () {
   var s = document.currentScript, id = (s && s.dataset.modulo) || '', portal = (s && s.dataset.portal) || '/central-atendimento/';
-  var P = null; try { if (window.parent !== window) P = window.parent.PlataformaAtual || null; } catch (e) { /* outro endereço */ }
+  var P = null; try { if (window.parent !== window) P = window.parent.PlataformaAtual || window.parent.PLAT || null; /* PLAT: página dentro de outra página do portal */ } catch (e) { /* outro endereço */ }
   if (!P) { document.documentElement.style.visibility = 'hidden'; location.replace(portal + '#' + id); return; }
   window.PLAT = P;
   var h = document.documentElement; h.classList.add('plat-embutido');
