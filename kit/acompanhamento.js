@@ -93,10 +93,15 @@
       var r = escolher(registros, inst, recl, p.desde, protPlan) || (inst && protPlan ? escolher(registros, '', recl, p.desde, protPlan) : null);
       if (!r) {
         // tem protocolo na planilha, mas a ouvidoria não está registrada na plataforma
-        if (protPlan && !so && String(row[cs] || '') !== NAO_REG) { cel(j, cs, NAO_REG); bordas(j, j + 1, cs, cs + 1); linhas++; }
+        if (protPlan && !so && String(row[cs] || '') !== NAO_REG) {
+          var rf = cr >= 0 ? cr : ci;
+          if (!p.colorir && rf >= 0 && rf !== cs) pedidos.push({ copyPaste: { source: { sheetId: sid, startRowIndex: j, endRowIndex: j + 1, startColumnIndex: rf, endColumnIndex: rf + 1 },
+            destination: { sheetId: sid, startRowIndex: j, endRowIndex: j + 1, startColumnIndex: cs, endColumnIndex: cs + 1 }, pasteType: 'PASTE_FORMAT' } });
+          cel(j, cs, NAO_REG); bordas(j, j + 1, cs, cs + 1); linhas++;
+        }
         continue;
       }
-      var pend = r.status === 'pendente', mudou = false;
+      var pend = r.status === 'pendente', mudou = false, inicioLinha = pedidos.length;
       var protAtual = String(row[cp] == null ? '' : row[cp]).trim();
       var prot = pend ? (protAtual && protAtual.toLowerCase() !== 'erro' ? null : 'Erro') : (r.protocolo || null);
       if (prot != null && protAtual !== prot) { cel(j, cp, prot); mudou = true; }
@@ -110,6 +115,12 @@
           rows: [{ values: [{ userEnteredValue: { stringValue: 'Abrir ouvidoria' }, textFormatRuns: [{ startIndex: 0, format: { link: { uri: PORTAL + r.id } } }] }] }], fields: 'userEnteredValue,textFormatRuns' } });
         mudou = true;
       }
+      // sem pintar: as colunas da ouvidoria ficam com a cor que a linha já tem (copiada da coluna da reclamação ou da instalação)
+      var ref = cr >= 0 ? cr : ci;
+      if (mudou && !p.colorir && ref >= 0) [cc, cs, cd, cl].forEach(function (c) {
+        if (c !== ref) pedidos.splice(inicioLinha, 0, { copyPaste: { source: { sheetId: sid, startRowIndex: j, endRowIndex: j + 1, startColumnIndex: ref, endColumnIndex: ref + 1 },
+          destination: { sheetId: sid, startRowIndex: j, endRowIndex: j + 1, startColumnIndex: c, endColumnIndex: c + 1 }, pasteType: 'PASTE_FORMAT' } });
+      });
       if (mudou && p.colorir) pedidos.push({ repeatCell: { range: { sheetId: sid, startRowIndex: j, endRowIndex: j + 1, startColumnIndex: 0, endColumnIndex: precisa },
         cell: { userEnteredFormat: { backgroundColor: pend ? LARANJA : VERDE } }, fields: 'userEnteredFormat.backgroundColor' } });
       if (mudou) { bordas(j, j + 1, b0, b1); linhas++; }
