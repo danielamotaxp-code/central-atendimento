@@ -149,6 +149,14 @@
     if (t === 'access_denied') return 'O Google não liberou o acesso para esta conta (' + (desc || 'acesso negado') + '). Se apareceu "Acesso bloqueado" ou "app em teste", a conta precisa ser liberada no projeto do Google da plataforma.';
     return 'Login do Google não concluído' + (t ? ' (' + t + (desc ? ': ' + desc : '') + ')' : '') + '.';
   }
+  // O Chrome às vezes avisa "janela fechada" enquanto a pessoa ainda está na tela de aviso do Google
+  // (a janela do Google se desliga da página por segurança). Nesse caso a resposta ainda chega:
+  // espera até 3 minutos antes de dar como cancelado.
+  function esperarOuFalhar(e, falha) {
+    var t = e && e.type;
+    if (t === 'popup_closed') { setTimeout(function () { falha(new Error(motivoGoogle(t))); }, 180000); return; }
+    falha(new Error(motivoGoogle(t)));
+  }
   function Google(clientId) {
     var tokenAtual = null, validoAte = 0, carregando = null;
     var DRIVE = 'https://www.googleapis.com/auth/drive', tokDrive = null, driveAte = 0;
@@ -184,7 +192,7 @@
             if (resp.error) return falha(new Error(motivoGoogle(resp.error, resp.error_description)));
             tokenAtual = resp.access_token; validoAte = Date.now() + (resp.expires_in - 60) * 1000; guardarG(); ok(tokenAtual);
           },
-          error_callback: function (e) { falha(new Error(motivoGoogle(e && e.type))); }
+          error_callback: function (e) { esperarOuFalhar(e, falha); }
         });
         cli.requestAccessToken({ prompt: tokenAtual ? '' : 'consent' });
       });
@@ -200,7 +208,7 @@
             if (resp.error) return falha(new Error('Login do Google não concluído.'));
             tokDrive = resp.access_token; driveAte = Date.now() + (resp.expires_in - 60) * 1000; guardarG(); ok(tokDrive);
           },
-          error_callback: function () { falha(new Error('Login do Google cancelado.')); }
+          error_callback: function (e) { esperarOuFalhar(e, falha); }
         });
         cli.requestAccessToken({ prompt: tokDrive ? '' : 'consent' });
       });
