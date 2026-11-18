@@ -152,6 +152,18 @@
   function Google(clientId) {
     var tokenAtual = null, validoAte = 0, carregando = null;
     var DRIVE = 'https://www.googleapis.com/auth/drive', tokDrive = null, driveAte = 0;
+    // a conexão vale por 1 hora para todas as abas e ao recarregar (guardada só neste navegador)
+    var CHAVE_G = 'plat_google_' + clientId.split('-')[0];
+    function guardarG() { try { localStorage.setItem(CHAVE_G, JSON.stringify({ t: tokenAtual, a: validoAte, d: tokDrive, da: driveAte })); } catch (e) { /* sem armazenamento */ } }
+    function lerG() {
+      try {
+        var g = JSON.parse(localStorage.getItem(CHAVE_G) || 'null'); if (!g) return;
+        if (g.t && Date.now() < g.a && !(tokenAtual && Date.now() < validoAte)) { tokenAtual = g.t; validoAte = g.a; }
+        if (g.d && Date.now() < g.da && !(tokDrive && Date.now() < driveAte)) { tokDrive = g.d; driveAte = g.da; }
+      } catch (e) { /* nada */ }
+    }
+    lerG();
+    try { global.addEventListener('storage', function (e) { if (e.key === CHAVE_G) lerG(); }); } catch (e) { /* nada */ }
     function carregar() {
       if (global.google && global.google.accounts && global.google.accounts.oauth2) return Promise.resolve();
       if (carregando) return carregando;
@@ -170,7 +182,7 @@
           client_id: clientId, scope: 'https://www.googleapis.com/auth/spreadsheets',
           callback: function (resp) {
             if (resp.error) return falha(new Error(motivoGoogle(resp.error, resp.error_description)));
-            tokenAtual = resp.access_token; validoAte = Date.now() + (resp.expires_in - 60) * 1000; ok(tokenAtual);
+            tokenAtual = resp.access_token; validoAte = Date.now() + (resp.expires_in - 60) * 1000; guardarG(); ok(tokenAtual);
           },
           error_callback: function (e) { falha(new Error(motivoGoogle(e && e.type))); }
         });
@@ -186,7 +198,7 @@
           client_id: clientId, scope: DRIVE, include_granted_scopes: true,
           callback: function (resp) {
             if (resp.error) return falha(new Error('Login do Google não concluído.'));
-            tokDrive = resp.access_token; driveAte = Date.now() + (resp.expires_in - 60) * 1000; ok(tokDrive);
+            tokDrive = resp.access_token; driveAte = Date.now() + (resp.expires_in - 60) * 1000; guardarG(); ok(tokDrive);
           },
           error_callback: function () { falha(new Error('Login do Google cancelado.')); }
         });
@@ -231,15 +243,15 @@
       return r.json();
     }
     return {
-      conectado: function () { return !!tokenAtual && Date.now() < validoAte; },
+      conectado: function () { if (!(tokenAtual && Date.now() < validoAte)) lerG(); return !!tokenAtual && Date.now() < validoAte; },
       /** Google Drive (pasta de vídeos etc.) */
-      driveConectado: function () { return !!tokDrive && Date.now() < driveAte; },
+      driveConectado: function () { if (!(tokDrive && Date.now() < driveAte)) lerG(); return !!tokDrive && Date.now() < driveAte; },
       conectarDrive: function () { return tokenDrive(true); },
       enviarDrive: enviarDrive,
       lixeiraDrive: async function (id) { var t = await tokenDrive(); var r = await fetch('https://www.googleapis.com/drive/v3/files/' + encodeURIComponent(id) + '?supportsAllDrives=true', { method: 'PATCH', headers: { Authorization: 'Bearer ' + t, 'Content-Type': 'application/json' }, body: JSON.stringify({ trashed: true }) }); if (!r.ok) throw new Error('Google Drive: ' + r.status); },
       entrar: function () { return token(true); },
       /** token atual do Google (planilhas), para as páginas que têm a própria integração usarem a mesma conexão */
-      token: function () { return !!tokenAtual && Date.now() < validoAte ? tokenAtual : null; },
+      token: function () { if (!(tokenAtual && Date.now() < validoAte)) lerG(); return !!tokenAtual && Date.now() < validoAte ? tokenAtual : null; },
       /** ID da planilha a partir do link. */
       idDoLink: function (link) { var m = String(link).match(/\/d\/([a-zA-Z0-9-_]{20,})/); return m ? m[1] : String(link).trim(); },
       planilha: function (id) { return sheets('GET', id + '?fields=properties.title,sheets.properties'); },
@@ -411,6 +423,7 @@
     });
 
     function sair() {
+      try { Object.keys(localStorage).filter(function (k) { return k.indexOf('plat_google_') === 0; }).forEach(function (k) { localStorage.removeItem(k); }); } catch (e) { /* nada */ }
       if (modoModulo) return PAI.sair();
       guarda.apagar('sessao', 'sessao'); guarda.apagar('sessao', 'local'); sessao = null;
       (cfg.limparAoSair || []).forEach(function (k) { try { sessionStorage.removeItem(k); localStorage.removeItem(k); } catch (e) { /* nada */ } });
