@@ -59,7 +59,8 @@
     var precisa = cab.length;
     if (novas.length) {
       if (folha.properties.gridProperties && folha.properties.gridProperties.columnCount < precisa)
-        cabecalho.push({ appendDimension: { sheetId: folha.properties.sheetId, dimension: 'COLUMNS', length: precisa - folha.properties.gridProperties.columnCount } });
+        // deixa colunas em branco sobrando no fim, para a planilha continuar rolando para a direita
+        cabecalho.push({ appendDimension: { sheetId: folha.properties.sheetId, dimension: 'COLUMNS', length: precisa - folha.properties.gridProperties.columnCount + 10 } });
       novas.forEach(function (x) {
         cabecalho.push({ updateCells: { range: { sheetId: folha.properties.sheetId, startRowIndex: hl, endRowIndex: hl + 1, startColumnIndex: x[0], endColumnIndex: x[0] + 1 },
           rows: [{ values: [{ userEnteredValue: { stringValue: x[1] } }] }], fields: 'userEnteredValue' } });
@@ -68,6 +69,15 @@
       });
     }
     var sid = folha.properties.sheetId;
+    // bordinhas nas colunas da ouvidoria (como a equipe faz na planilha)
+    var bloco = [cc, cs, cp, cd, cl], b0 = Math.min.apply(null, bloco), b1 = Math.max.apply(null, bloco) + 1;
+    var LINHA = { style: 'SOLID', width: 1 };
+    var bordas = function (l0, l1, c0, c1) { pedidos.push({ updateBorders: { range: { sheetId: sid, startRowIndex: l0, endRowIndex: l1, startColumnIndex: c0, endColumnIndex: c1 },
+      top: LINHA, bottom: LINHA, left: LINHA, right: LINHA, innerHorizontal: LINHA, innerVertical: LINHA } }); };
+    if (novas.length) {
+      var ult = m.length; while (ult > hl + 1 && !(m[ult - 1] || []).some(function (v) { return String(v == null ? '' : v).trim(); })) ult--;
+      novas.forEach(function (x) { bordas(hl, ult, x[0], x[0] + 1); });
+    }
     var cel = function (lin, col, v) { pedidos.push({ updateCells: { range: { sheetId: sid, startRowIndex: lin, endRowIndex: lin + 1, startColumnIndex: col, endColumnIndex: col + 1 }, rows: [{ values: [{ userEnteredValue: { stringValue: String(v) } }] }], fields: 'userEnteredValue' } }); };
     for (var j = hl + 1; j < m.length; j++) {
       var row = m[j] || [], inst = ci >= 0 ? chave(row[ci]) : '';
@@ -80,7 +90,7 @@
       var r = escolher(registros, inst, recl, p.desde, protPlan) || (inst && protPlan ? escolher(registros, '', recl, p.desde, protPlan) : null);
       if (!r) {
         // tem protocolo na planilha, mas a ouvidoria não está registrada na plataforma
-        if (protPlan && !so && String(row[cs] || '') !== NAO_REG) { cel(j, cs, NAO_REG); linhas++; }
+        if (protPlan && !so && String(row[cs] || '') !== NAO_REG) { cel(j, cs, NAO_REG); bordas(j, j + 1, cs, cs + 1); linhas++; }
         continue;
       }
       var pend = r.status === 'pendente', mudou = false;
@@ -99,7 +109,7 @@
       }
       if (mudou && p.colorir) pedidos.push({ repeatCell: { range: { sheetId: sid, startRowIndex: j, endRowIndex: j + 1, startColumnIndex: 0, endColumnIndex: precisa },
         cell: { userEnteredFormat: { backgroundColor: pend ? LARANJA : VERDE } }, fields: 'userEnteredFormat.backgroundColor' } });
-      if (mudou) linhas++;
+      if (mudou) { bordas(j, j + 1, b0, b1); linhas++; }
     }
     // colunas novas só entram quando alguma linha vai ser preenchida
     if (linhas) await g.lote(pid, cabecalho.concat(pedidos));
