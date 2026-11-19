@@ -146,7 +146,7 @@
         if (c !== ref) pedidos.splice(inicioLinha, 0, { copyPaste: { source: { sheetId: sid, startRowIndex: j, endRowIndex: j + 1, startColumnIndex: ref, endColumnIndex: ref + 1 },
           destination: { sheetId: sid, startRowIndex: j, endRowIndex: j + 1, startColumnIndex: c, endColumnIndex: c + 1 }, pasteType: 'PASTE_FORMAT' } });
       });
-      if (mudou && p.colorir) pedidos.push({ repeatCell: { range: { sheetId: sid, startRowIndex: j, endRowIndex: j + 1, startColumnIndex: 0, endColumnIndex: precisa },
+      if (mudou && p.colorir) pedidos.push({ repeatCell: { range: { sheetId: sid, startRowIndex: j, endRowIndex: j + 1, startColumnIndex: Math.max(0, cab.findIndex(function (h) { return String(h == null ? '' : h).trim(); })), endColumnIndex: precisa },
         cell: { userEnteredFormat: { backgroundColor: pend ? LARANJA : VERDE } }, fields: 'userEnteredFormat.backgroundColor' } });
       if (mudou) { bordas(j, j + 1, b0, b1); linhas++; }
     }
