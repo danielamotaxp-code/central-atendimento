@@ -87,6 +87,14 @@
       "iv": "Gp+kBDFHyBM1WbB6",
       "chave": "ZjGPMm/vbVDY4s8nPubJyucIGsGT0SAjlcT3V44nCBAt8PmtJ7hyC2Pcdr+YJ1SV",
       "senhaPadrao": true
+    },
+    "samuel": {
+      "nome": "Samuel",
+      "papel": "usuario",
+      "salt": "Kz6eTCLYTMllayUznoexsQ==",
+      "iv": "GLbJ651quuAbjRkG",
+      "chave": "o8r8yKECArHLPlaRituPAbhKqNAzfAR4J3ehFB5b0cSXeDaG/l0uY37pdtY28gfE",
+      "senhaPadrao": true
     }
   },
   "token": {
@@ -95,5 +103,5 @@
   },
   "versao": 2,
   "plataforma": "plataforma",
-  "atualizadoEm": "2026-11-16T12:35:28.618Z"
+  "atualizadoEm": "2026-11-19T14:22:10.284Z"
 }
