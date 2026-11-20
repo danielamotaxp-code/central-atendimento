@@ -55,7 +55,7 @@
     var cp = achar(/^protocolo( da)? ouvidoria$/); if (cp < 0) cp = achar(/^protocolo$/);
     var cc = achar(/^colaborador$/), cl = achar(/^ouvidoria na plataforma$/);
     var cs = achar(/^ouvidoria$/), cd = achar(/^data da ouvidoria$/), crt = achar(/^retorno da cemig$/);
-    var temRetorno = registros.some(function (r) { return textoRetorno(r); });
+    var temRetorno = false; // retorno da Cemig fica só no Registro de protocolos e na planilha Retornos das Ouvidorias (pedido da Daniela, 20/11)
     // coluna com "Reclamação N" nas linhas (ex.: "situação" ou "Observação 2")
     var fixas = (p.reclamacoes || []).map(Number).filter(function (n) { return !isNaN(n); });
     var cr = -1, melhor = 0;
