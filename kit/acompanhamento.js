@@ -22,13 +22,14 @@
   // qualquer coluna de instalação (ex.: "Instalação do cliente" e "Instalação da usina")
   function temInst(h) { return ehInst(h) || /(^|\s)instalacao(\s|$)/.test(norm(h)); }
   function reclamacaoDe(v) { var m = String(v || '').match(/reclama\S*\s*(?:n\S*\s*)?(\d+)/i); return m ? +m[1] : null; }
-  // texto da coluna "Retorno da Cemig": Sim (data da última carta da Cemig) ou Não — qualquer carta conta, como no Registro de protocolos
+  // texto da coluna "Retorno da Cemig" (último retorno que não é só a confirmação do registro)
+  var RET_TXT = { pedido: 'Sim — a Cemig pediu algo', aguardando: 'Sim — aguardando a Cemig', resolvido: 'Sim — respondido' };
+  var SIT_TXT = { responder: 'precisamos responder', aguardando_cemig: 'aguardando a Cemig', respondido: 'respondemos', encerrado: 'encerrado' };
   function textoRetorno(r) {
-    if (r.status === 'pendente') return '';
-    var rs = r.retornos || [];
-    if (!rs.length) return 'Não';
+    var rs = (r.retornos || []).filter(function (x) { return x.tipo !== 'registro'; });
+    if (!rs.length) return '';
     var u = rs.slice().sort(function (a, b) { return String(a.dataISO || a.recebidoEm || '').localeCompare(String(b.dataISO || b.recebidoEm || '')); }).pop();
-    return 'Sim' + (u.dataISO ? ' (' + br(u.dataISO) + ')' : '');
+    return (RET_TXT[u.tipo] || 'Sim') + (u.dataISO ? ' (' + br(u.dataISO) + ')' : '') + (u.situacao ? ' · ' + (SIT_TXT[u.situacao] || u.situacao) : '');
   }
   function aspas(t) { return "'" + String(t).replace(/'/g, "''") + "'"; }
 
@@ -54,7 +55,7 @@
     var cp = achar(/^protocolo( da)? ouvidoria$/); if (cp < 0) cp = achar(/^protocolo$/);
     var cc = achar(/^colaborador$/), cl = achar(/^ouvidoria na plataforma$/);
     var cs = achar(/^ouvidoria$/), cd = achar(/^data da ouvidoria$/), crt = achar(/^retorno da cemig$/);
-    var temRetorno = !p.semRetorno; // a coluna Retorno da Cemig aparece em todas as planilhas (menos a de solicitações, que guarda o ID no fim)
+    var temRetorno = registros.some(function (r) { return textoRetorno(r); });
     // coluna com "Reclamação N" nas linhas (ex.: "situação" ou "Observação 2")
     var fixas = (p.reclamacoes || []).map(Number).filter(function (n) { return !isNaN(n); });
     var cr = -1, melhor = 0;
@@ -179,5 +180,5 @@
     return saida;
   }
 
-  raiz.Acompanhamento = { sincronizar: sincronizar, textoRetorno: textoRetorno, reclamacaoDe: reclamacaoDe, idDoLink: idDoLink };
+  raiz.Acompanhamento = { sincronizar: sincronizar, reclamacaoDe: reclamacaoDe, idDoLink: idDoLink };
 })(typeof window !== 'undefined' ? window : this);
