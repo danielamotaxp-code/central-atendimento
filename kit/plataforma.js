@@ -768,6 +768,38 @@
           }).join('') + '</tbody></table></div>';
       } catch (e) { box.innerHTML = '<h3>Acompanhamento de acessos</h3><p class="p-erro">Não foi possível carregar: ' + esc(e.message) + '</p>'; }
     }
+    /* Ouvidorias por pessoa: só a administradora vê (Administração). Conta direto dos registros de Ouvidorias Cemig e se atualiza sozinho. */
+    var timerOuvAdmin = null;
+    async function desenharOuvidoriasAdmin(box) {
+      var tit = '<h3>Ouvidorias por pessoa</h3><p class="p-ajuda">Só administradoras veem este quadro. Conta as ouvidorias registradas em Ouvidorias Cemig por quem registrou; atualiza sozinho a cada minuto.</p>';
+      if (!box.innerHTML) box.innerHTML = tit + '<p class="p-dica"><span class="p-spinner"></span> Carregando…</p>';
+      try {
+        var a = await gh.ler('danielamotaxp-code/ouvidorias-cemig-dados', 'registros.json');
+        var regs = a ? (JSON.parse(a.texto).registros || []) : [];
+        var agora = new Date(), iso = function (d) { return d.toISOString().slice(0, 10); };
+        var hoje = iso(agora), d7 = iso(new Date(agora - 6 * 864e5)), mes = hoje.slice(0, 7);
+        var dia = function (r) { return String(r.dataAbertura || r.ultimaTentativa || r.criadoEm || '').slice(0, 10); };
+        var por = {};
+        regs.forEach(function (r) {
+          var q = String(r.responsavel || 'Sem nome').trim() || 'Sem nome', p = por[q] = por[q] || { nome: q, total: 0, env: 0, pend: 0, hoje: 0, d7: 0, mes: 0, recl: {} };
+          var d = dia(r), pend = r.status === 'pendente';
+          p.total++; if (pend) p.pend++; else p.env++;
+          if (d === hoje) p.hoje++; if (d >= d7) p.d7++; if (d.slice(0, 7) === mes) p.mes++;
+          if (r.reclamacao) p.recl[r.reclamacao] = (p.recl[r.reclamacao] || 0) + 1;
+        });
+        var lista = Object.keys(por).map(function (k) { return por[k]; }).sort(function (x, y) { return y.total - x.total; });
+        var soma = function (c) { return lista.reduce(function (t, p) { return t + p[c]; }, 0); };
+        box.innerHTML = tit + '<div class="p-tabela-rolagem"><table class="p-tabela"><thead><tr><th scope="col">Pessoa</th><th scope="col" class="num">Total</th><th scope="col" class="num">Enviadas</th><th scope="col" class="num">Não enviadas</th><th scope="col" class="num">Hoje</th><th scope="col" class="num">7 dias</th><th scope="col" class="num">Este mês</th><th scope="col">Por reclamação</th></tr></thead><tbody>' +
+          lista.map(function (p) {
+            var rec = Object.keys(p.recl).sort(function (x, y) { return x - y; }).map(function (k) { return 'R' + k + ': ' + p.recl[k]; }).join(' · ');
+            return '<tr><th scope="row">' + esc(p.nome) + '</th><td class="num"><b>' + p.total + '</b></td><td class="num">' + p.env + '</td><td class="num">' + p.pend + '</td><td class="num">' + p.hoje + '</td><td class="num">' + p.d7 + '</td><td class="num">' + p.mes + '</td><td>' + esc(rec) + '</td></tr>';
+          }).join('') +
+          '<tr><th scope="row">Total</th><td class="num"><b>' + soma('total') + '</b></td><td class="num">' + soma('env') + '</td><td class="num">' + soma('pend') + '</td><td class="num">' + soma('hoje') + '</td><td class="num">' + soma('d7') + '</td><td class="num">' + soma('mes') + '</td><td></td></tr>' +
+          '</tbody></table></div><p class="p-dica">Atualizado às ' + esc(agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })) + '.</p>';
+      } catch (e) { box.innerHTML = tit + '<p class="p-erro">Não foi possível carregar: ' + esc(e.message) + '</p>'; }
+      clearTimeout(timerOuvAdmin);
+      timerOuvAdmin = setTimeout(function () { if (document.body.contains(box) && ehAdmin()) desenharOuvidoriasAdmin(box); }, 60000);
+    }
     function listaMarcas(ks, claro) {
       return '<ul class="p-marcas' + (claro ? ' claro' : '') + '">' + ks.map(function (k) { var m = MARCAS[k]; return '<li style="--m:' + m.cor + '"><strong>' + esc(m.nome) + '</strong><span>' + m.whatsapp.map(function (n) { return 'WhatsApp ' + esc(n); }).join('<br>') + '</span></li>'; }).join('') + '</ul>';
     }
@@ -929,6 +961,7 @@
       };
       (cfg.admin || []).forEach(function (sec) { var d = document.createElement('div'); d.className = 'p-bloco'; d.innerHTML = '<h3>' + esc(sec.titulo) + '</h3>'; $('#p-admin-extra').appendChild(d); sec.desenhar(d, ctx); });
       if (modoPortal && cfg.registroAcessos) { var ac = document.createElement('div'); ac.className = 'p-bloco'; corpo.prepend(ac); desenharAcompanhamento(ac); }
+      if (modoPortal) { var ov = document.createElement('div'); ov.className = 'p-bloco'; (ac ? ac.after(ov) : corpo.prepend(ov)); desenharOuvidoriasAdmin(ov); }
     }
     function modulosMarcados(form) { return Array.prototype.map.call(form.querySelectorAll('[data-mod-novo]:checked'), function (i) { return i.dataset.modNovo; }); }
     /** Administradora entrou: inclui sozinho quem tinha acesso às plataformas antigas e ainda não está aqui. */
