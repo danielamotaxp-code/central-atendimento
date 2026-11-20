@@ -87,6 +87,25 @@
   async function cifrar(chave, bytes) { var iv = aleatorio(12); var c = await crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, chave, bytes); return { iv: b64(iv), dados: b64(c) }; }
   async function decifrar(chave, obj) { return new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(obj.iv) }, chave, unb64(obj.dados))); }
 
+  /* Senhas visíveis só para a administradora (pedido da Daniela, 20/11/2026):
+     a senha de cada pessoa é guardada trancada com uma chave pública (RSA-OAEP); só a chave privada abre,
+     e a chave privada fica trancada com a senha de cada administradora. Quem não é administradora não consegue ler. */
+  var RSA = { name: 'RSA-OAEP', hash: 'SHA-256' };
+  async function novoParSenhas() {
+    var par = await crypto.subtle.generateKey(Object.assign({ modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]) }, RSA), true, ['encrypt', 'decrypt']);
+    return { publica: b64(await crypto.subtle.exportKey('spki', par.publicKey)), privada: new Uint8Array(await crypto.subtle.exportKey('pkcs8', par.privateKey)) };
+  }
+  async function trancarPrivada(senha, bytes) { var salt = aleatorio(16), c = await cifrar(await chaveDaSenha(senha, salt), bytes); return { salt: b64(salt), iv: c.iv, dados: c.dados }; }
+  async function abrirPrivada(senha, o) { return decifrar(await chaveDaSenha(senha, unb64(o.salt)), o); }
+  async function trancarSenhaVista(publica, senha) {
+    var k = await crypto.subtle.importKey('spki', unb64(publica), RSA, false, ['encrypt']);
+    return b64(await crypto.subtle.encrypt(RSA, k, enc.encode(senha)));
+  }
+  async function abrirSenhaVista(privadaB64, dado) {
+    var k = await crypto.subtle.importKey('pkcs8', unb64(privadaB64), RSA, false, ['decrypt']);
+    return dec.decode(await crypto.subtle.decrypt(RSA, k, unb64(dado)));
+  }
+
   /** Tranca a chave-mestra com a senha de um usuário. */
   async function entradaUsuario(nome, papel, senha, mestra, padrao, modulos) {
     var salt = aleatorio(16);
@@ -408,6 +427,18 @@
       shaCofre = await gh.gravar(cfg.repoSite, cfg.cofreRepo, JSON.stringify(novo, null, 2) + '\n', atual && atual.sha, mensagem);
       cofre = novo; guarda.gravar('cofre', novo);
     }
+    // guarda a senha (trancada) para a administradora ver; a administradora ganha a chave que abre as senhas
+    async function guardarSenhaVista(login, senha) {
+      var u = cofre.usuarios[login]; if (!u) return;
+      var n = null, copia = function () { return n || (n = JSON.parse(JSON.stringify(cofre))); };
+      if (u.papel === 'admin') {
+        if (u.privada) { try { sessao.privada = b64(await abrirPrivada(senha, u.privada)); } catch (e) { /* chave de outra senha */ } }
+        else if (!cofre.senhasPub && login === 'daniela') { /* só a Daniela vê as senhas */ var par = await novoParSenhas(); copia().senhasPub = par.publica; n.usuarios[login].privada = await trancarPrivada(senha, par.privada); sessao.privada = b64(par.privada); }
+      }
+      var pub = (n || cofre).senhasPub;
+      if (pub && u.senhaVistaDe !== u.salt) { copia(); n.usuarios[login].senhaVista = await trancarSenhaVista(pub, senha); n.usuarios[login].senhaVistaDe = u.salt; }
+      if (n) await salvarCofre(n, 'Acesso de ' + u.nome);
+    }
     function listaUsuarios() {
       return Object.keys(cofre.usuarios).map(function (k) { return Object.assign({ login: k }, cofre.usuarios[k]); })
         .sort(function (a, b) { return a.nome.localeCompare(b.nome, 'pt-BR'); });
@@ -450,6 +481,7 @@
         var token = await abrirToken(cofre.token, mestra);
         var lembrar = $('#p-login-lembrar').checked;
         sessao = { login: login, nome: u.nome, papel: u.papel, mestra: b64(mestra), token: token, senhaPadrao: !!u.senhaPadrao };
+        try { await guardarSenhaVista(login, senha); } catch (e) { /* não atrapalha a entrada */ }
         guarda.gravar('ultimo', login); guarda.gravar('lembrar', lembrar);
         guarda.gravar('sessao', sessao, lembrar ? 'local' : 'sessao');
         $('#p-login-senha').value = '';
@@ -860,7 +892,7 @@
       var tema = prefs.tema || guarda.ler('tema', 'auto');
       var corpo = abrirGaveta('Minha conta',
         '<div class="p-bloco"><h3>' + esc(sessao.nome) + '</h3><p class="p-ajuda">' + (ehAdmin() ? 'Administradora desta plataforma.' : 'Usuário desta plataforma.') + '</p></div>' +
-        '<form class="p-bloco" id="p-form-senha"><h3>Trocar minha senha</h3>' +
+        '<form class="p-bloco" id="p-form-senha"><h3>Trocar minha senha</h3><p class="p-ajuda">A administradora consegue ver a senha que você escolher. Não use a mesma senha do seu e-mail, banco ou celular.</p>' +
           '<label class="p-campo">Senha atual<input type="password" id="p-senha-atual" autocomplete="current-password" required></label>' +
           '<label class="p-campo">Nova senha<input type="password" id="p-senha-nova" autocomplete="new-password" minlength="6" required></label>' +
           '<label class="p-campo">Repita a nova senha<input type="password" id="p-senha-nova2" autocomplete="new-password" minlength="6" required></label>' +
@@ -880,7 +912,9 @@
             await carregarCofre(); var u = cofre.usuarios[sessao.login], mestra;
             try { mestra = await abrirEntrada(u, atual); } catch (e) { err.textContent = 'A senha atual está incorreta.'; return; }
             var novoCofre = JSON.parse(JSON.stringify(cofre));
-            novoCofre.usuarios[sessao.login] = await entradaUsuario(u.nome, u.papel, nova, mestra, nova === SENHA_PADRAO, u.modulos);
+            var ent = novoCofre.usuarios[sessao.login] = await entradaUsuario(u.nome, u.papel, nova, mestra, nova === SENHA_PADRAO, u.modulos);
+            if (novoCofre.senhasPub) { ent.senhaVista = await trancarSenhaVista(novoCofre.senhasPub, nova); ent.senhaVistaDe = ent.salt; }
+            if (u.privada) { try { ent.privada = await trancarPrivada(nova, await abrirPrivada(atual, u.privada)); } catch (e) { /* sem chave */ } }
             await salvarCofre(novoCofre, 'Senha trocada por ' + sessao.nome);
             sessao.senhaPadrao = nova === SENHA_PADRAO; guardarSessao();
             ev.target.reset(); aviso('Senha trocada. Vale em cerca de 1 minuto.');
@@ -918,7 +952,7 @@
       if (!ehAdmin()) return;
       if (modoModulo) { abrirGaveta('Configurações da página', '<div id="p-admin-extra"></div>'); (cfg.admin || []).forEach(function (sec) { var d = document.createElement('div'); d.className = 'p-bloco'; d.innerHTML = '<h3>' + esc(sec.titulo) + '</h3>'; $('#p-admin-extra').appendChild(d); sec.desenhar(d, ctx); }); return; }
       var corpo = abrirGaveta('Administração',
-        '<div class="p-bloco"><h3>Usuários</h3><p class="p-ajuda">Quem entra é incluído com a senha <b>' + SENHA_PADRAO + '</b> e pode trocá-la em Minha conta. As mudanças valem em cerca de 1 minuto.</p>' +
+        '<div class="p-bloco"><h3>Usuários</h3><p class="p-ajuda">Quem entra é incluído com a senha <b>' + SENHA_PADRAO + '</b> e pode trocá-la em Minha conta. "Ver senha" mostra a senha atual de cada pessoa (só administradoras veem). As mudanças valem em cerca de 1 minuto.</p>' +
           '<div class="p-usuarios" id="p-lista-usuarios"></div>' +
           '<form class="p-novo" id="p-form-novo"><div class="p-linha"><input class="p-entrada" id="p-novo-nome" placeholder="Nome da pessoa" required><select class="p-entrada" id="p-novo-papel" style="flex:0 1 170px"><option value="usuario">Usuário</option><option value="admin">Administradora</option></select><button class="btn btn-primario" type="submit">Incluir</button></div>' + (modoPortal ? '<div class="p-chips">' + cfg.modulos.map(function (m) { return '<label class="p-chip"><input type="checkbox" checked data-mod-novo="' + esc(m.id) + '">' + esc(m.nome) + '</label>'; }).join('') + '</div>' : '') + '</form>' +
           (modoPortal ? '<div id="p-faltam"></div>' : '') +
@@ -1004,19 +1038,24 @@
         var eu = u.login === sessao.login;
         return '<div class="p-usuario-item" data-login="' + esc(u.login) + '"><strong>' + esc(u.nome) + (eu ? ' <span class="p-dica">(você)</span>' : '') + (u.senhaPadrao ? ' <span class="p-dica">· senha padrão</span>' : '') + '</strong>' +
           '<select data-acao="papel"' + (eu ? ' disabled title="Você não pode tirar o seu próprio acesso de administradora"' : '') + '><option value="usuario"' + (u.papel !== 'admin' ? ' selected' : '') + '>Usuário</option><option value="admin"' + (u.papel === 'admin' ? ' selected' : '') + '>Administradora</option></select>' +
-          '<button class="btn btn-peq" data-acao="redefinir" type="button">Senha ' + SENHA_PADRAO + '</button>' +
+          '<span class="p-senha-vista" data-senha="' + esc(u.login) + '">' + (u.senhaPadrao ? 'Senha: <b>' + SENHA_PADRAO + '</b>' : (u.senhaVista && sessao.privada ? '<button class="btn btn-peq" data-acao="ver" type="button">Ver senha</button>' : '<span class="p-dica">senha aparece quando a pessoa entrar de novo</span>')) + '</span>' +
+          '<button class="btn btn-peq" data-acao="redefinir" type="button" title="Volta a senha para ' + SENHA_PADRAO + '">Voltar para ' + SENHA_PADRAO + '</button>' +
           (modoPortal ? '<div class="p-chips">' + cfg.modulos.map(function (m) { var on = u.papel === 'admin' || (Array.isArray(u.modulos) ? u.modulos.indexOf(m.id) >= 0 : true); return '<label class="p-chip' + (u.papel === 'admin' ? ' fixo' : '') + '"><input type="checkbox" data-acao="modulo" value="' + esc(m.id) + '"' + (on ? ' checked' : '') + (u.papel === 'admin' ? ' disabled title="Administradoras veem todas as páginas"' : '') + '>' + esc(m.nome) + '</label>'; }).join('') + '</div>' : '') +
           (eu ? '' : '<button class="btn btn-peq btn-perigo" data-acao="remover" type="button">Remover</button>') + '</div>';
       }).join('');
       box.onclick = async function (ev) {
         var b = ev.target.closest('button[data-acao]'); if (!b) return;
         var login = b.closest('[data-login]').dataset.login, u = cofre.usuarios[login], err = $('#p-admin-erro'); err.textContent = '';
+        if (b.dataset.acao === 'ver') {
+          try { var sv = await abrirSenhaVista(sessao.privada, u.senhaVista); b.parentNode.innerHTML = 'Senha: <b>' + esc(sv) + '</b>'; } catch (e) { err.textContent = 'Não consegui abrir a senha: ' + e.message; }
+          return;
+        }
         if (b.dataset.acao === 'remover') {
           if (b.dataset.confirmar !== '1') { b.dataset.confirmar = '1'; b.textContent = 'Confirmar remoção'; setTimeout(function () { if (b.isConnected) { b.dataset.confirmar = ''; b.textContent = 'Remover'; } }, 5000); return; }
           await comBotao(b, async function () { try { await carregarCofre(); var n = JSON.parse(JSON.stringify(cofre)); delete n.usuarios[login]; await salvarCofre(n, 'Acesso removido: ' + u.nome + ' (por ' + sessao.nome + ')'); aviso(u.nome + ' não tem mais acesso.'); } catch (e) { err.textContent = e.message; } });
           desenharUsuarios();
         } else if (b.dataset.acao === 'redefinir') {
-          await comBotao(b, async function () { try { await carregarCofre(); var n = JSON.parse(JSON.stringify(cofre)); n.usuarios[login] = await entradaUsuario(u.nome, u.papel, SENHA_PADRAO, unb64(sessao.mestra), true, u.modulos); await salvarCofre(n, 'Senha redefinida: ' + u.nome + ' (por ' + sessao.nome + ')'); aviso('Senha de ' + u.nome + ' voltou para ' + SENHA_PADRAO + '.'); } catch (e) { err.textContent = e.message; } });
+          await comBotao(b, async function () { try { await carregarCofre(); var n = JSON.parse(JSON.stringify(cofre)); var ent = n.usuarios[login] = await entradaUsuario(u.nome, u.papel, SENHA_PADRAO, unb64(sessao.mestra), true, u.modulos); if (n.senhasPub) { ent.senhaVista = await trancarSenhaVista(n.senhasPub, SENHA_PADRAO); ent.senhaVistaDe = ent.salt; } if (u.privada && sessao.privada) ent.privada = await trancarPrivada(SENHA_PADRAO, unb64(sessao.privada)); await salvarCofre(n, 'Senha redefinida: ' + u.nome + ' (por ' + sessao.nome + ')'); aviso('Senha de ' + u.nome + ' voltou para ' + SENHA_PADRAO + '.'); } catch (e) { err.textContent = e.message; } });
           desenharUsuarios();
         }
       };
