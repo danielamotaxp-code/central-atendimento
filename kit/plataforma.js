@@ -32,20 +32,41 @@
 
   /* Conectar Google pela página do Google (sem janela): volta para o portal com o acesso no endereço.
      Guarda o acesso (1 hora) e devolve o endereço para a página em que a pessoa estava. */
+  var SO_RENOVAR = false; // esta página está aberta escondida só para renovar o acesso do Google
   (function voltaDoGoogle() {
     try {
-      if (global.top !== global) return;
       var h = String(location.hash || '');
+      if (global.top !== global) {
+        // renovação silenciosa: guarda o acesso novo e não carrega o resto da página
+        if (/[#&]state=renovar/.test(h) || h.indexOf('access_token=') >= 0 || h.indexOf('error=') >= 0) {
+          SO_RENOVAR = true;
+          if (h.indexOf('access_token=') >= 0) {
+            var r = {}; h.slice(1).split('&').forEach(function (p) { var i = p.indexOf('='); if (i > 0) r[decodeURIComponent(p.slice(0, i))] = decodeURIComponent(p.slice(i + 1).replace(/\+/g, ' ')); });
+            var at = Date.now() + (Number(r.expires_in || 3600) - 60) * 1000, gg = { t: r.access_token, a: at };
+            if (String(r.scope || '').indexOf('/auth/drive') >= 0) { gg.d = r.access_token; gg.da = at; }
+            localStorage.setItem('plat_google_' + CLIENTE_GOOGLE.split('-')[0], JSON.stringify(gg));
+          }
+          try { global.stop(); } catch (e) { /* nada */ }
+        }
+        return;
+      }
       if (h.indexOf('access_token=') < 0) return;
       var q = {}; h.slice(1).split('&').forEach(function (p) { var i = p.indexOf('='); if (i > 0) q[decodeURIComponent(p.slice(0, i))] = decodeURIComponent(p.slice(i + 1).replace(/\+/g, ' ')); });
       var ate = Date.now() + (Number(q.expires_in || 3600) - 60) * 1000, esc = String(q.scope || '');
       var g = { t: q.access_token, a: ate };
       if (esc.indexOf('/auth/drive') >= 0) { g.d = q.access_token; g.da = ate; }
       localStorage.setItem('plat_google_' + CLIENTE_GOOGLE.split('-')[0], JSON.stringify(g));
+      localStorage.setItem('plat_google_manter', '1'); // a partir daqui o acesso é renovado sozinho
       history.replaceState(null, '', location.pathname + location.search + (q.state ? '#' + q.state.replace(/^#/, '') : ''));
     } catch (e) { /* nada */ }
   })();
-  function urlGoogle(clientId) {
+  if (SO_RENOVAR) { global.Plataforma = { iniciar: function () {}, util: { esc: esc0, slug: function (x) { return x; } } }; return; }
+  function esc0(x) { return String(x); }
+  function urlGoogle(clientId, silencioso) {
+    if (silencioso) {
+      return 'https://accounts.google.com/o/oauth2/v2/auth?response_type=token&prompt=none&client_id=' + encodeURIComponent(clientId) +
+        '&redirect_uri=' + encodeURIComponent(location.origin + '/central-atendimento/') + '&scope=' + encodeURIComponent(ESC_SHEETS + ' ' + ESC_DRIVE) + '&state=renovar';
+    }
     var volta = location.origin + '/central-atendimento/';
     var onde = ''; try { onde = global.top.location.hash || ''; } catch (e) { onde = location.hash || ''; }
     // sem "#" no state: a tela de aviso do Google ("app não verificado") perde os parâmetros quando aparece "#"
@@ -216,7 +237,31 @@
       } catch (e) { /* nada */ }
     }
     lerG();
-    try { global.addEventListener('storage', function (e) { if (e.key === CHAVE_G) lerG(); }); } catch (e) { /* nada */ }
+    try { global.addEventListener('storage', function (e) { if (e.key === CHAVE_G) { lerG(); agendarRenovacao(); } }); } catch (e) { /* nada */ }
+    // manter conectado: renova o acesso escondido (sem tela) uns minutos antes de vencer e ao abrir a página
+    var renovando = null, timerRenova = null;
+    function manter() { try { return localStorage.getItem('plat_google_manter') === '1'; } catch (e) { return false; } }
+    function renovarEscondido() {
+      if (renovando || global.top !== global) return renovando || Promise.resolve(false);
+      renovando = new Promise(function (ok) {
+        var antes = validoAte, f = document.createElement('iframe');
+        f.style.display = 'none'; f.setAttribute('aria-hidden', 'true'); f.src = urlGoogle(clientId, true);
+        var fim = function (r) { clearInterval(t); try { f.remove(); } catch (e) { /* nada */ } renovando = null; agendarRenovacao(); ok(r); };
+        var t = setInterval(function () { lerG(); if (validoAte > antes && Date.now() < validoAte) fim(true); }, 500);
+        setTimeout(function () { fim(false); }, 15000);
+        document.body.appendChild(f);
+      });
+      return renovando;
+    }
+    function agendarRenovacao() {
+      clearTimeout(timerRenova); if (!manter() || global.top !== global) return;
+      var falta = validoAte - Date.now() - 4 * 60 * 1000;
+      timerRenova = setTimeout(renovarEscondido, Math.max(falta, 0));
+    }
+    if (manter() && global.top === global) {
+      if (tokenAtual && Date.now() < validoAte) agendarRenovacao();
+      else if (document.body) renovarEscondido(); else document.addEventListener('DOMContentLoaded', renovarEscondido);
+    }
     function carregar() {
       if (global.google && global.google.accounts && global.google.accounts.oauth2) return Promise.resolve();
       if (carregando) return carregando;
@@ -235,7 +280,7 @@
           client_id: clientId, scope: 'https://www.googleapis.com/auth/spreadsheets',
           callback: function (resp) {
             if (resp.error) return falha(new Error(motivoGoogle(resp.error, resp.error_description)));
-            tokenAtual = resp.access_token; validoAte = Date.now() + (resp.expires_in - 60) * 1000; guardarG(); ok(tokenAtual);
+            tokenAtual = resp.access_token; validoAte = Date.now() + (resp.expires_in - 60) * 1000; guardarG(); try { localStorage.setItem('plat_google_manter', '1'); } catch (e) { /* nada */ } agendarRenovacao(); ok(tokenAtual);
           },
           error_callback: function (e) { esperarOuFalhar(e, falha); }
         });
