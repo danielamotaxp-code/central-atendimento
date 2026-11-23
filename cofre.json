@@ -6,7 +6,14 @@
       "salt": "SAroJsXlE8b/iQaHtW4trg==",
       "iv": "VQjLiFs4I3wC3v9U",
       "chave": "YlwGPvCgyVB6MeTbFyeb2sag9CbNlJyOB4pK92sN3WyPqx1rBvguB4tc00x/HF0l",
-      "senhaPadrao": false
+      "senhaPadrao": false,
+      "privada": {
+        "salt": "gaEwWT+63JDdzkr1Ena3hg==",
+        "iv": "n/GzmwJEFpFToFTo",
+        "dados": "e+Npkuo46HFr+uB9xukw+XhD/qWzy8o/AXkEq0ms+2A4S4o0apflXgon2PDkMhpxnXsgr8Pu4blTCp2o5J6UgHakFLWrHOuLbjgssUS4Cag+5HQaq78lkGjyd+BcNx9wLO4nWke3ewK+zdO6V1JF3Ot8NmGUu4vh/vuwewQUWgSUpdPcDCiGp+utF9wZfogKNY0IbjKpBiw9WTWBH++adE1EYNoOAatmnfEYLHYzaXYPacmAbp/2l6FLsfB+HWTLFTtnHBzdORfFfgqshoEd7Gakng9dlTgPCAsIu5dacmEyZZswHODqfo4DNwyhXs+LlCndo7a/3+RILsfBA5qzO9Ud7hmB+kWaB8T9o8i9Wv871OOUxUflwiOCZRxl1kSa4SDdfxBYvvEv65FNuxyMoEKttCozXCXKpmrXBoB4oUgaiXG9CFQNLNJm6RWKUIUwdtCzdxIPV1B6GsXr2g0CHR7Ob+7umJmFe2JDW8jBWZmC/9xEtFCutMJ22v/UbMYR1Omcgn3DNt1PSFSw+s3U7kZQ9WPksSewDCJmpJyNipHWaHBhWVkOu8RtuagguibpGBgmKKaD/SpQgW1BojgstO4xkwNwKJlipnch7RH+PseanVZrIcbsjC1AnlzAP/m0ya9zOBDP/ZaP93oayy+IC9OdUIVliTM7E7q52sESwgCueO4DdEhgVAkiQ5FpA4+tdmJMgEcNqgM5OnkN57Yg17PsBjvH5o7KQS2E/HT4pOi1PxDNfVNM27wKn5d5x3188zzasOS/bd9I0pcbrzghMH+WNHeNi//9IKYya5hXWUrUJ+X7euXCqrPTlr7BxdP6CsvrSx1QCHFll8WQWdD8XbZswXN0TTlkpv1VufHgjvbf7NfWkUCBTKEmmkhhk9ZM1NAGwpSUHakaxJPbH41ngj0nAeCgZbMzJpNh2ReUzq6mmCsQI2PqZcIrxJ/WGI4RRejsbcIjOdRDI6yMrSdge9AkMWjaIbCcysaTIude2hk+YyxUwVBUQr2Gzcq8ezpzH9+1RqqHbxIJeA4iA7tQFMqKBw7iW5l9WHRwGYEhgpEDIWhcpu6KAQwR09G0xnQVew7Frgqgper14tVTuPKtdJ5NbjmSb6Sw/xSygDXk49uEsDpnxu+WlC93dvbRriF6B9gbcdSQPmX9HnjQ+4cOyXHozRxosLmLVBAOu9j07yghxZ1hj6LEwtMoSCQa5ZnLBwSTgNeWc0pSRQY/REUR0UETYaV1YDItJp9ndtQnVG/fo5eYHC+T4N8Jla3vIeULzZlJ/WQaGAvoUaL5LIdo9mx38DChPdgv2aTrZsm418vr3yh9u2twrolPtG4oxprfI3f6eE7j1hSfNVDPE8PIYZMoz+piSMF+USG4CEpxnr8e5tz+8HF0J9qXZ1N+r+FVS5hKrJEkVN1QCfJnfdwYiylivC1cUO8ky9xtjbqZDpSra3UOoVyEG54p/lPmS0u5yUHnVdrggJzY7QIzJKhukXy8pTzp5mipU9fpTw2bPj2kerw2s6grF5lp/qv1fGy9gI79j1RJhEVwsQ8kyaGYxCL2ZMeHtcCzxd28QYi6jUY4hSWypcQdU6zZF8Oyyk2Hbc5TufSMBsoqUsRBFJ4Zp7RFuM4OjeMwSv0x19huANX2"
+      },
+      "senhaVista": "mB/UBH+g2OG8yY5r/65WUxTXY3igVOiLvHO0vN2QPB4MAvp120AxfRVitUleuYysGwLbzlGLzatYF8kLIyE8HIQjgly4WoR+K5c1Db0c6k4gjsns2nzsWNZ8u20SI3YtEL6M2iuroEuEGL23hzHA1/9HlCxNootcLrw1qUktJJILeoIsRq8vXFQoBb1jAuU3jJdhLo+H+mRag1gEL3kbcmFVD7roPI1tYovGtPop0/uKjfV0wFOAo0CemJ4oladfZKi/esWZ03+cZ0knu1VpcyBHTEkwTHUN1ttAN2v+bWBO9oSmozJcprFPL15Qjl23G8WDl3TTilReqHBiXE/RzA==",
+      "senhaVistaDe": "SAroJsXlE8b/iQaHtW4trg=="
     },
     "paula": {
       "nome": "Paula",
@@ -103,5 +110,6 @@
   },
   "versao": 2,
   "plataforma": "plataforma",
-  "atualizadoEm": "2026-11-19T14:22:10.284Z"
+  "atualizadoEm": "2026-11-23T04:27:36.203Z",
+  "senhasPub": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtLUHoQQF7xoPwJST+kVf6/SlvbcAQoWkLRK9CV/C+LgO1vrlQ+1ltPOM02tKTOnZP+Pn7vQBo9HwxckAObMgomtJl0J96BBN2KSKoqx1fPnQ9w+zB8Q/OYv/76Bp3W/N/DGcr4f4O2fDpqXrCHAvhLhJazYUAwaSy8vWWI4vODzr5rzsbUQWa1pENA/nj52bGgqjHAXVnyesdnWqUY0IFPMcF1lkusOWNmuszbQNNGJ2UbWxwP+39BigSSWs0mi7WL6+ekklZ8g+L8pUA7klSiosdskQzNULj5i28Fy4dK91O4jFenX37n1ERkw1Vb1smh5tE1TV4sald0eMuS81vwIDAQAB"
 }
