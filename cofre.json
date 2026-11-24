@@ -44,12 +44,12 @@
     "laura": {
       "nome": "Laura",
       "papel": "usuario",
-      "salt": "hJZVi4A/PULVnBM+9VsLjw==",
-      "iv": "VeymreOTWjEau58j",
-      "chave": "pCUz4cktwyVb0w/eD3sICGKcrqPApTyLwsIPXsiUVPmaHd1FZ6e72kUj/7t/E/4S",
-      "senhaPadrao": true,
-      "senhaVista": "d6XZC7eGQBrRwuJiUx5k9koNxTKBlaDqQwkbCQRVu52ZP60pGPeu/PVRtubm+fC1rz4YJMEpDb4zfOc9Zr2SNKNJRebxIm3Xzv/BcJIDlD88Vpo7J+5F5AVtkCyOtfG9799Ioam4y5MsVCB59epKKhCeIPuzcQrIGvpv7HtHH99+Ud7GCOIE5vFDDeebTSnmjBM5cGnwZ4WSVuHpp8jbbGzjf5JwAip1tik1pPZlTDHcmxEq3FAahp2jqAfseTJ2Vb3qVXcMXI7xdOCErGxuf9yj7yYWiiis6mUYP9yq9mTDbIsp81M8aKRYYD5UCV1agNl7jc5+Xl2D8GxvVn9MeQ==",
-      "senhaVistaDe": "hJZVi4A/PULVnBM+9VsLjw=="
+      "salt": "oqeeUvAiNKtnkuEy2H6JrQ==",
+      "iv": "lyi0lqZb2cZ1zlcE",
+      "chave": "elpYA/C69SC6qqpmFttbg6YP36/GbKMEcZTdJnZGiNZnLVonyTETTRTb7Ky3qMQ8",
+      "senhaPadrao": false,
+      "senhaVista": "LhAQWtel1Xk7ixfmoq2R1AYyZF8jdcar8lHVr+pG1Z9pUC7z45hMH2YNadr/FaaGFIfanq23osbg5om9U9Zc01ceYXOZW4gkmEb45GgbAaHZAaNmmM9q0SX0RXzsLHpgpyBpPuh5h2z+MoBpks80t2sT1cwGKNtrIbOL8Zui1/Tx2rE3xpmp9NWVWcgj6f66EMMlsqiWTZ/IpUFLbY6ibVK1eYEgHueNU3PQqBCnyZyz9rTwALusBBvGFftHYDYu/LM1bVc0C8T7Zemsn1SmTXFZPhGEY9Gf3VKjcIeiI0uANQ360XLGp2d3fxQURDXtHSFpBdb4R1yJH/FKGs3uTA==",
+      "senhaVistaDe": "oqeeUvAiNKtnkuEy2H6JrQ=="
     },
     "guilherme": {
       "nome": "Guilherme",
@@ -114,6 +114,6 @@
   },
   "versao": 2,
   "plataforma": "plataforma",
-  "atualizadoEm": "2026-11-24T18:17:37.923Z",
+  "atualizadoEm": "2026-11-24T18:24:28.303Z",
   "senhasPub": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtLUHoQQF7xoPwJST+kVf6/SlvbcAQoWkLRK9CV/C+LgO1vrlQ+1ltPOM02tKTOnZP+Pn7vQBo9HwxckAObMgomtJl0J96BBN2KSKoqx1fPnQ9w+zB8Q/OYv/76Bp3W/N/DGcr4f4O2fDpqXrCHAvhLhJazYUAwaSy8vWWI4vODzr5rzsbUQWa1pENA/nj52bGgqjHAXVnyesdnWqUY0IFPMcF1lkusOWNmuszbQNNGJ2UbWxwP+39BigSSWs0mi7WL6+ekklZ8g+L8pUA7klSiosdskQzNULj5i28Fy4dK91O4jFenX37n1ERkw1Vb1smh5tE1TV4sald0eMuS81vwIDAQAB"
 }
