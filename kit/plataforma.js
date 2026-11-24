@@ -384,7 +384,14 @@
     var google = cfg.google === false ? null : Google((cfg.google && cfg.google.clientId) || CLIENTE_GOOGLE);
 
     function ehAdmin() { return !!(sessao && sessao.papel === 'admin'); }
-    function aplicarTema(t) { if (t === 'claro' || t === 'escuro') document.documentElement.dataset.tema = t; else delete document.documentElement.dataset.tema; }
+    var temaAtual, mqEscuro = window.matchMedia ? matchMedia('(prefers-color-scheme: dark)') : null;
+    function aplicarTema(t) {
+      var mq = window.matchMedia ? matchMedia('(prefers-color-scheme: dark)') : null;
+      temaAtual = t;
+      if (t === 'claro' || t === 'escuro') document.documentElement.dataset.tema = t; else delete document.documentElement.dataset.tema;
+      document.documentElement.classList.toggle('escuro', t === 'escuro' || (t !== 'claro' && !!(mq && mq.matches)));
+    }
+    if (mqEscuro) { try { mqEscuro.addEventListener('change', function () { aplicarTema(temaAtual || 'auto'); }); } catch (e) { /* navegador antigo */ } }
 
     /* ---------- moldura ---------- */
     function heroiLogin(ks) {
@@ -743,6 +750,9 @@
       '#p-passo1-emb .b svg rect{fill:#fff}#p-passo1-emb .b svg path{stroke:#1e874b}' +
       '#p-passo1-emb .x{background:none;border:0;padding:0;color:#6b7a90;font:inherit;font-size:12px;text-decoration:underline;cursor:pointer}' +
       '#p-passo1-emb .f{font-size:13px;color:#8a5a00}' +
+      'html.escuro #p-passo1-emb .c{background:linear-gradient(100deg,#15291e,#172119 70%);border-color:#2f6a47;box-shadow:none}' +
+      'html.escuro #p-passo1-emb .i{background:#1a2027;border-color:#2f6a47}html.escuro #p-passo1-emb .t small{color:#7fd09a}' +
+      'html.escuro #p-passo1-emb .t strong{color:#f2f5f8}html.escuro #p-passo1-emb .t span{color:#b2bdc9}html.escuro #p-passo1-emb .x{color:#9aa6b4}html.escuro #p-passo1-emb .f{color:#ffd27a}' +
       '@media (max-width:760px){#p-passo1-emb{margin-bottom:12px}#p-passo1-emb .c{gap:10px;padding:8px 10px;border-radius:10px;box-shadow:none}' +
       '#p-passo1-emb .i{width:30px;height:30px;border-radius:8px}#p-passo1-emb .i svg{width:18px;height:18px}' +
       '#p-passo1-emb .t small,#p-passo1-emb .t span{display:none}#p-passo1-emb .t strong{font-size:13.5px;font-weight:600}' +

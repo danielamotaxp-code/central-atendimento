@@ -9,9 +9,14 @@
   if (!P) { document.documentElement.style.visibility = 'hidden'; location.replace(portal + '#' + id); return; }
   window.PLAT = P;
   var h = document.documentElement; h.classList.add('plat-embutido');
+  var mq = window.matchMedia ? matchMedia('(prefers-color-scheme: dark)') : null, atualT = 'auto';
   function tema(t) {
+    atualT = t;
     if (t === 'claro' || t === 'escuro') { h.dataset.tema = t; h.dataset.theme = t === 'escuro' ? 'dark' : 'light'; }
     else { delete h.dataset.tema; delete h.dataset.theme; }
+    /* classe "escuro" = tema escuro de fato (escolhido, ou automático com o computador no escuro) */
+    h.classList.toggle('escuro', t === 'escuro' || (t !== 'claro' && !!(mq && mq.matches)));
   }
   tema(P.tema()); P.aoTema(tema);
+  if (mq) { try { mq.addEventListener('change', function () { tema(atualT); }); } catch (e) { /* navegador antigo */ } }
 })();
