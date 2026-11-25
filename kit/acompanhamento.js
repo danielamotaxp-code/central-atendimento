@@ -40,6 +40,13 @@
   // Mês de referência da ouvidoria ("AAAA-MM"): o mês a que o problema se refere. As Reclamações 6 de antes do campo são de outubro/2026.
   var MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
   function mesRefDe(r) { return r.mesRef || (+r.reclamacao === 6 ? '2026-10' : ''); }
+  // "Outubro/2026", "outubro de 2026" ou "10/2026" → "2026-10"
+  function mesDoTexto(v) {
+    var t = norm(v), m = t.match(/(\d{1,2}) (\d{4})/);
+    if (m && +m[1] >= 1 && +m[1] <= 12) return m[2] + '-' + ('0' + m[1]).slice(-2);
+    for (var i = 0; i < 12; i++) { var a = t.match(new RegExp('^' + norm(MESES[i]) + '(?: de)? (\\d{4})$')); if (a) return a[1] + '-' + ('0' + (i + 1)).slice(-2); }
+    return '';
+  }
   function nomeMes(iso) { var p = String(iso || '').split('-'); return p.length === 2 ? MESES[+p[1] - 1] + '/' + p[0] : ''; }
   // meses: meses de referência da planilha (só pintam as ouvidorias desses meses). Sem meses: período antigo desde / ate.
   function escolher(registros, inst, recl, desde, prot, ate, meses) {
@@ -85,6 +92,8 @@
     }
     // colunas que faltam vão para o fim do cabeçalho
     var novas = [];
+    // planilha com coluna "Mês de referência" (ex.: Ouvidorias Solicitadas): cada linha vale pelo mês que foi pedido
+    var cmr = achar(/^mes de referencia$/);
     var meses = (p.meses || []).filter(Boolean), soMes = meses.length && meses.indexOf('todos') < 0, ch = soMes ? achar(/^ouvidorias de outros meses$/) : -1;
     var idx = { cp: cp, cc: cc, cs: cs, cd: cd, cl: cl, ch: soMes ? ch : 0 };
     [['Colaborador', 'cc'], ['Ouvidoria', 'cs'], ['Protocolo Ouvidoria', 'cp'], ['Data da ouvidoria', 'cd'], ['Ouvidoria na plataforma', 'cl'], ['Ouvidorias de outros meses', 'ch']].forEach(function (x) {
@@ -130,10 +139,11 @@
       var recl = null;
       if (fixas.length) recl = fixas;
       else if (cr >= 0) { var n = reclamacaoDe(row[cr]); if (n == null) continue; recl = [n]; }
-      var r = null;
-      for (var q = 0; q < insts.length && !r; q++) r = escolher(registros, insts[q], recl, p.desde, protPlan, p.ate, meses);
-      if (!r && !insts.length) r = escolher(registros, '', recl, p.desde, protPlan, p.ate, meses);
-      if (!r && insts.length && protPlan) r = escolher(registros, '', recl, p.desde, protPlan, p.ate, meses);
+      var r = null, mLinha = meses;
+      if (cmr >= 0) { var mr0 = mesDoTexto(row[cmr]); if (mr0) mLinha = [mr0]; }
+      for (var q = 0; q < insts.length && !r; q++) r = escolher(registros, insts[q], recl, p.desde, protPlan, p.ate, mLinha);
+      if (!r && !insts.length) r = escolher(registros, '', recl, p.desde, protPlan, p.ate, mLinha);
+      if (!r && insts.length && protPlan) r = escolher(registros, '', recl, p.desde, protPlan, p.ate, mLinha);
       // histórico: ouvidorias do cliente com outro mês de referência (não pintam a linha)
       if (ch >= 0 && insts.length) {
         var hist = textoOutrosMeses(registros, insts, recl, meses);
