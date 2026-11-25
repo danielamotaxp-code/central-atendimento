@@ -45,7 +45,7 @@
   function escolher(registros, inst, recl, desde, prot, ate, meses) {
     var rs = registros.filter(function (r) {
       var dia = String(r.criadoEm || '').slice(0, 10);
-      var noMes = meses && meses.length ? meses.indexOf(mesRefDe(r)) >= 0 : (dia >= (desde || '') && (!ate || dia <= ate));
+      var noMes = meses && meses.length ? (meses.indexOf('todos') >= 0 || meses.indexOf(mesRefDe(r)) >= 0) : (dia >= (desde || '') && (!ate || dia <= ate));
       return (inst ? chave(r.instalacao) === inst : (prot && chave(r.protocolo) === prot)) && (recl == null || recl.indexOf(+r.reclamacao) >= 0) && noMes;
     }).sort(function (a, b) { return String(b.criadoEm || '').localeCompare(String(a.criadoEm || '')); });
     return rs.filter(function (r) { return r.status !== 'pendente'; })[0] || rs[0] || null;
@@ -85,12 +85,12 @@
     }
     // colunas que faltam vão para o fim do cabeçalho
     var novas = [];
-    var meses = (p.meses || []).filter(Boolean), ch = meses.length ? achar(/^ouvidorias de outros meses$/) : -1;
-    var idx = { cp: cp, cc: cc, cs: cs, cd: cd, cl: cl, ch: meses.length ? ch : 0 };
+    var meses = (p.meses || []).filter(Boolean), soMes = meses.length && meses.indexOf('todos') < 0, ch = soMes ? achar(/^ouvidorias de outros meses$/) : -1;
+    var idx = { cp: cp, cc: cc, cs: cs, cd: cd, cl: cl, ch: soMes ? ch : 0 };
     [['Colaborador', 'cc'], ['Ouvidoria', 'cs'], ['Protocolo Ouvidoria', 'cp'], ['Data da ouvidoria', 'cd'], ['Ouvidoria na plataforma', 'cl'], ['Ouvidorias de outros meses', 'ch']].forEach(function (x) {
       if (idx[x[1]] < 0 && !p.apenasRetorno) { var n = cab.length; cab.push(x[0]); novas.push([n, x[0]]); idx[x[1]] = n; }
     });
-    cp = idx.cp; cc = idx.cc; cs = idx.cs; cd = idx.cd; cl = idx.cl; ch = meses.length ? idx.ch : -1;
+    cp = idx.cp; cc = idx.cc; cs = idx.cs; cd = idx.cd; cl = idx.cl; ch = soMes ? idx.ch : -1;
     if (crt < 0 && temRetorno) { crt = cab.length; cab.push('Retorno da Cemig'); novas.push([crt, 'Retorno da Cemig']); }
     var precisa = cab.length;
     if (novas.length) {
