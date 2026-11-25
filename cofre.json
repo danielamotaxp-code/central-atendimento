@@ -105,7 +105,9 @@
       "salt": "Kz6eTCLYTMllayUznoexsQ==",
       "iv": "GLbJ651quuAbjRkG",
       "chave": "o8r8yKECArHLPlaRituPAbhKqNAzfAR4J3ehFB5b0cSXeDaG/l0uY37pdtY28gfE",
-      "senhaPadrao": true
+      "senhaPadrao": true,
+      "senhaVista": "QB2Sb1pjn3BK9OHpa3zOP1vrNeOwvgX2hXYj+qoa88+w4AKE4VZebPjV+eikan8/y9Qz6CM2o+tlOvv9Z3XMbkA1S+rPWHpZleqIGPDWD8sf6EX5JHsvG0eETl897+f9M/D7ASvOweoqfqDYpC4ltLXZQDlV7b5rnJMsf9R2zu+zM6Evb5B69RxBSfw7QMLPHQPjI6dwb6KFeJims2y064JNNAz1SiCKiV+bR09nxuxarXRNIBV+h+xnYKgEQfLojHfmEyqCtzuEOH6UdqkrW/TM/MXSBjGMegBnrD4KONZ7rgCiL7k6kD+LMOhUqsSr2oJRe9HLsMNBCu2tJCPnNg==",
+      "senhaVistaDe": "Kz6eTCLYTMllayUznoexsQ=="
     }
   },
   "token": {
@@ -114,6 +116,6 @@
   },
   "versao": 2,
   "plataforma": "plataforma",
-  "atualizadoEm": "2026-11-24T18:24:28.303Z",
+  "atualizadoEm": "2026-11-25T16:23:35.918Z",
   "senhasPub": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtLUHoQQF7xoPwJST+kVf6/SlvbcAQoWkLRK9CV/C+LgO1vrlQ+1ltPOM02tKTOnZP+Pn7vQBo9HwxckAObMgomtJl0J96BBN2KSKoqx1fPnQ9w+zB8Q/OYv/76Bp3W/N/DGcr4f4O2fDpqXrCHAvhLhJazYUAwaSy8vWWI4vODzr5rzsbUQWa1pENA/nj52bGgqjHAXVnyesdnWqUY0IFPMcF1lkusOWNmuszbQNNGJ2UbWxwP+39BigSSWs0mi7WL6+ekklZ8g+L8pUA7klSiosdskQzNULj5i28Fy4dK91O4jFenX37n1ERkw1Vb1smh5tE1TV4sald0eMuS81vwIDAQAB"
 }
