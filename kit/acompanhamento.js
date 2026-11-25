@@ -8,6 +8,8 @@
  *  - preenche, como na planilha das faturas: "Ouvidoria" (Enviada / Não enviada), "Protocolo Ouvidoria" (ou "Erro"),
  *    "Data da ouvidoria", "Colaborador" (se vazio) e o link "Ouvidoria na plataforma" (cria as colunas que faltam no fim);
  *  - pinta a linha de verde (enviada) ou laranja (erro) só nas planilhas marcadas com colorir.
+ *  - meses: ['2026-10'] → só pinta as ouvidorias com esse mês de referência; as de outros meses vão para a coluna
+ *    "Ouvidorias de outros meses" (histórico).
  * Usa a conexão com o Google da plataforma (PLAT.google: planilha, ler, lote).
  */
 (function (raiz) {
@@ -35,13 +37,29 @@
 
   var NAO_REG = 'Não registrada na plataforma';
   function ehProt(h) { return /^protocolo( da)? ouvidoria$|^protocolo$/.test(norm(h)); }
-  // desde / ate: período escolhido na planilha (só valem as ouvidorias registradas nele); ate vazio = sem fim
-  function escolher(registros, inst, recl, desde, prot, ate) {
+  // Mês de referência da ouvidoria ("AAAA-MM"): o mês a que o problema se refere. As Reclamações 6 de antes do campo são de outubro/2026.
+  var MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+  function mesRefDe(r) { return r.mesRef || (+r.reclamacao === 6 ? '2026-10' : ''); }
+  function nomeMes(iso) { var p = String(iso || '').split('-'); return p.length === 2 ? MESES[+p[1] - 1] + '/' + p[0] : ''; }
+  // meses: meses de referência da planilha (só pintam as ouvidorias desses meses). Sem meses: período antigo desde / ate.
+  function escolher(registros, inst, recl, desde, prot, ate, meses) {
     var rs = registros.filter(function (r) {
       var dia = String(r.criadoEm || '').slice(0, 10);
-      return (inst ? chave(r.instalacao) === inst : (prot && chave(r.protocolo) === prot)) && (recl == null || recl.indexOf(+r.reclamacao) >= 0) && dia >= (desde || '') && (!ate || dia <= ate);
+      var noMes = meses && meses.length ? meses.indexOf(mesRefDe(r)) >= 0 : (dia >= (desde || '') && (!ate || dia <= ate));
+      return (inst ? chave(r.instalacao) === inst : (prot && chave(r.protocolo) === prot)) && (recl == null || recl.indexOf(+r.reclamacao) >= 0) && noMes;
     }).sort(function (a, b) { return String(b.criadoEm || '').localeCompare(String(a.criadoEm || '')); });
     return rs.filter(function (r) { return r.status !== 'pendente'; })[0] || rs[0] || null;
+  }
+  // ouvidorias do mesmo cliente com outro mês de referência (histórico: "Já foi aberta ouvidoria em setembro/2026 (protocolo)")
+  function textoOutrosMeses(registros, insts, recl, meses) {
+    var vistos = {};
+    return registros.filter(function (r) {
+      var mr = mesRefDe(r);
+      return insts.indexOf(chave(r.instalacao)) >= 0 && (recl == null || recl.indexOf(+r.reclamacao) >= 0) && mr && meses.indexOf(mr) < 0;
+    }).sort(function (a, b) { return mesRefDe(a).localeCompare(mesRefDe(b)); }).map(function (r) {
+      var t = 'Já foi aberta ouvidoria em ' + nomeMes(mesRefDe(r)) + (r.status === 'pendente' ? ' (não enviada)' : (r.protocolo ? ' (' + r.protocolo + ')' : ''));
+      if (vistos[t]) return ''; vistos[t] = 1; return t;
+    }).filter(Boolean).join('; ');
   }
 
   async function umaAba(g, pid, folha, valores, p, registros, so) {
@@ -67,11 +85,12 @@
     }
     // colunas que faltam vão para o fim do cabeçalho
     var novas = [];
-    var idx = { cp: cp, cc: cc, cs: cs, cd: cd, cl: cl };
-    [['Colaborador', 'cc'], ['Ouvidoria', 'cs'], ['Protocolo Ouvidoria', 'cp'], ['Data da ouvidoria', 'cd'], ['Ouvidoria na plataforma', 'cl']].forEach(function (x) {
+    var meses = (p.meses || []).filter(Boolean), ch = meses.length ? achar(/^ouvidorias de outros meses$/) : -1;
+    var idx = { cp: cp, cc: cc, cs: cs, cd: cd, cl: cl, ch: meses.length ? ch : 0 };
+    [['Colaborador', 'cc'], ['Ouvidoria', 'cs'], ['Protocolo Ouvidoria', 'cp'], ['Data da ouvidoria', 'cd'], ['Ouvidoria na plataforma', 'cl'], ['Ouvidorias de outros meses', 'ch']].forEach(function (x) {
       if (idx[x[1]] < 0 && !p.apenasRetorno) { var n = cab.length; cab.push(x[0]); novas.push([n, x[0]]); idx[x[1]] = n; }
     });
-    cp = idx.cp; cc = idx.cc; cs = idx.cs; cd = idx.cd; cl = idx.cl;
+    cp = idx.cp; cc = idx.cc; cs = idx.cs; cd = idx.cd; cl = idx.cl; ch = meses.length ? idx.ch : -1;
     if (crt < 0 && temRetorno) { crt = cab.length; cab.push('Retorno da Cemig'); novas.push([crt, 'Retorno da Cemig']); }
     var precisa = cab.length;
     if (novas.length) {
@@ -90,7 +109,7 @@
     }
     var sid = folha.properties.sheetId;
     // bordinhas nas colunas da ouvidoria (como a equipe faz na planilha)
-    var bloco = [cc, cs, cp, cd, cl].concat(crt >= 0 ? [crt] : []).filter(function (c) { return c >= 0; }), b0 = Math.min.apply(null, bloco), b1 = Math.max.apply(null, bloco) + 1;
+    var bloco = [cc, cs, cp, cd, cl].concat(crt >= 0 ? [crt] : []).concat(ch >= 0 ? [ch] : []).filter(function (c) { return c >= 0; }), b0 = Math.min.apply(null, bloco), b1 = Math.max.apply(null, bloco) + 1;
     var LINHA = { style: 'SOLID', width: 1 };
     var centro = function (l0, l1, c0, c1) { pedidos.push({ repeatCell: { range: { sheetId: sid, startRowIndex: l0, endRowIndex: l1, startColumnIndex: c0, endColumnIndex: c1 },
       cell: { userEnteredFormat: { horizontalAlignment: 'CENTER', textFormat: { bold: false } } }, fields: 'userEnteredFormat.horizontalAlignment,userEnteredFormat.textFormat.bold' } }); };
@@ -112,9 +131,14 @@
       if (fixas.length) recl = fixas;
       else if (cr >= 0) { var n = reclamacaoDe(row[cr]); if (n == null) continue; recl = [n]; }
       var r = null;
-      for (var q = 0; q < insts.length && !r; q++) r = escolher(registros, insts[q], recl, p.desde, protPlan, p.ate);
-      if (!r && !insts.length) r = escolher(registros, '', recl, p.desde, protPlan, p.ate);
-      if (!r && insts.length && protPlan) r = escolher(registros, '', recl, p.desde, protPlan, p.ate);
+      for (var q = 0; q < insts.length && !r; q++) r = escolher(registros, insts[q], recl, p.desde, protPlan, p.ate, meses);
+      if (!r && !insts.length) r = escolher(registros, '', recl, p.desde, protPlan, p.ate, meses);
+      if (!r && insts.length && protPlan) r = escolher(registros, '', recl, p.desde, protPlan, p.ate, meses);
+      // histórico: ouvidorias do cliente com outro mês de referência (não pintam a linha)
+      if (ch >= 0 && insts.length) {
+        var hist = textoOutrosMeses(registros, insts, recl, meses);
+        if (String(row[ch] == null ? '' : row[ch]) !== hist) { cel(j, ch, hist); bordas(j, j + 1, ch, ch + 1); linhas++; }
+      }
       if (!r) {
         // tem protocolo na planilha, mas a ouvidoria não está registrada na plataforma
         if (!p.apenasRetorno && protPlan && !so && registros.length > 20 && String(row[cs] || '') !== NAO_REG) {
