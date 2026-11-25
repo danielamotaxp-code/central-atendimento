@@ -694,6 +694,20 @@
         })(m, f);
       }
       topoModulo(m); document.title = m.nome + ' · ' + cfg.nome;
+      pedirGoogle(m);
+    }
+    // páginas que usam planilhas do Google (google: true no módulo): ao abrir sem conexão, já leva para a página de conectar.
+    // Espera a renovação automática (quem já conectou antes) e, se a pessoa cancelar, só pede de novo depois de 10 minutos.
+    function pedirGoogle(m) {
+      if (!m.google || !google || google.conectado()) return;
+      var ult = 0; try { ult = +sessionStorage.getItem('plat_g_auto') || 0; } catch (e) { /* nada */ }
+      if (Date.now() - ult < 10 * 60 * 1000) return;
+      setTimeout(function () {
+        if (atual !== m.id || google.conectado()) return;
+        try { sessionStorage.setItem('plat_g_auto', String(Date.now())); } catch (e) { /* nada */ }
+        aviso('Para usar ' + m.nome + ', conecte o Google. Abrindo a página do Google…');
+        setTimeout(function () { if (atual === m.id && !google.conectado()) google.entrarPelaPagina(); }, 1500);
+      }, 2500);
     }
     var ICONES = {
       atendimento: '<path d="M4 5h16v11H10l-6 4z"/><path d="M8 9h8M8 12h5"/>',

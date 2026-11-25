@@ -14,7 +14,7 @@
 </head>
 <body>
   <div id="plataforma"></div>
-  <script src="kit/plataforma.js?v=36"></script>
+  <script src="kit/plataforma.js?v=37"></script>
   <script>
   /* Portal único: um login e um menu com todas as páginas.
      Cada página continua no próprio repositório; aqui só fica o acesso. */
@@ -37,7 +37,7 @@
       ],
       letra: 'P',
       cor: '#111111',
-      versao: '35',
+      versao: '36',
       repoSite: R + 'central-atendimento',
       cofre: 'cofre.json',
       repoDados: R + 'central-atendimento-dados',
@@ -53,11 +53,11 @@
         { id: 'comercial', nome: 'Comercial WattWise', descricao: 'Mensagens do atendimento comercial', marcas: ['wattwise'],
           src: '/central-atendimento/comercial/', repos: [R + 'central-atendimento-dados'] },
         { id: 'cobranca', nome: 'Cobrança Inadimplentes', descricao: 'Mensagens de cobrança, planilhas e gateway', marcas: ['smartben', 'wegen', 'wattwise'],
-          src: '/cobranca-inadimplentes/app.html', repos: [R + 'cobranca-inadimplentes', R + 'cobranca-acessos'], usuarios: ['Daniela', 'Luis', 'Paula', 'Laura', 'Guilherme', 'Victor'] },
+          google: true, src: '/cobranca-inadimplentes/app.html', repos: [R + 'cobranca-inadimplentes', R + 'cobranca-acessos'], usuarios: ['Daniela', 'Luis', 'Paula', 'Laura', 'Guilherme', 'Victor'] },
         { id: 'faturas', nome: 'Faturas e Contratos', descricao: 'Conferência semanal de faturas e contratos', marcas: ['wattwise'],
-          src: '/faturas-contratos/app.html', repos: [R + 'faturas-contratos', R + 'faturas-contratos-acessos'], usuarios: ['Daniela', 'Paula', 'Ytala'] },
+          google: true, src: '/faturas-contratos/app.html', repos: [R + 'faturas-contratos', R + 'faturas-contratos-acessos'], usuarios: ['Daniela', 'Paula', 'Ytala'] },
         { id: 'ouvidorias', nome: 'Ouvidorias Cemig', descricao: 'Gerar, enviar e registrar ouvidorias', marcas: ['wattwise'],
-          src: '/ouvidorias-cemig/app.html', repos: [R + 'ouvidorias-cemig-dados'], usuarios: ['Daniela', 'Paula', 'Pedro', 'Victor', 'Ytala'] },
+          google: true, src: '/ouvidorias-cemig/app.html', repos: [R + 'ouvidorias-cemig-dados'], usuarios: ['Daniela', 'Paula', 'Pedro', 'Victor', 'Ytala'] },
         { id: 'distratos', nome: 'Central de Distratos', descricao: 'Termos de distrato a partir do D4Sign', marcas: ['wegen', 'smartben'],
           planilhas: [{ id: 'cancelamentos', nome: 'CANCELAMENTOS E AUDITORIAS', dica: 'Os termos de distrato usam os dados dessa planilha (empresa, opção e data da solicitação). Registre o cancelamento lá primeiro e depois use esta página.' }],
           alvoPlanilha: '#telaApp',
