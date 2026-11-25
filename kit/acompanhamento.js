@@ -35,9 +35,11 @@
 
   var NAO_REG = 'Não registrada na plataforma';
   function ehProt(h) { return /^protocolo( da)? ouvidoria$|^protocolo$/.test(norm(h)); }
-  function escolher(registros, inst, recl, desde, prot) {
+  // desde / ate: período escolhido na planilha (só valem as ouvidorias registradas nele); ate vazio = sem fim
+  function escolher(registros, inst, recl, desde, prot, ate) {
     var rs = registros.filter(function (r) {
-      return (inst ? chave(r.instalacao) === inst : (prot && chave(r.protocolo) === prot)) && (recl == null || recl.indexOf(+r.reclamacao) >= 0) && String(r.criadoEm || '').slice(0, 10) >= (desde || '');
+      var dia = String(r.criadoEm || '').slice(0, 10);
+      return (inst ? chave(r.instalacao) === inst : (prot && chave(r.protocolo) === prot)) && (recl == null || recl.indexOf(+r.reclamacao) >= 0) && dia >= (desde || '') && (!ate || dia <= ate);
     }).sort(function (a, b) { return String(b.criadoEm || '').localeCompare(String(a.criadoEm || '')); });
     return rs.filter(function (r) { return r.status !== 'pendente'; })[0] || rs[0] || null;
   }
@@ -110,9 +112,9 @@
       if (fixas.length) recl = fixas;
       else if (cr >= 0) { var n = reclamacaoDe(row[cr]); if (n == null) continue; recl = [n]; }
       var r = null;
-      for (var q = 0; q < insts.length && !r; q++) r = escolher(registros, insts[q], recl, p.desde, protPlan);
-      if (!r && !insts.length) r = escolher(registros, '', recl, p.desde, protPlan);
-      if (!r && insts.length && protPlan) r = escolher(registros, '', recl, p.desde, protPlan);
+      for (var q = 0; q < insts.length && !r; q++) r = escolher(registros, insts[q], recl, p.desde, protPlan, p.ate);
+      if (!r && !insts.length) r = escolher(registros, '', recl, p.desde, protPlan, p.ate);
+      if (!r && insts.length && protPlan) r = escolher(registros, '', recl, p.desde, protPlan, p.ate);
       if (!r) {
         // tem protocolo na planilha, mas a ouvidoria não está registrada na plataforma
         if (!p.apenasRetorno && protPlan && !so && registros.length > 20 && String(row[cs] || '') !== NAO_REG) {
@@ -156,7 +158,7 @@
   }
 
   /**
-   * opts: { google: PLAT.google, planilhas: [{nome, link, colorir, desde}], registros: [...], instalacoes: [opcional, só essas] }
+   * opts: { google: PLAT.google, planilhas: [{nome, link, colorir, reclamacoes, desde, ate}], registros: [...], instalacoes: [opcional, só essas] }
    * Devolve [{ nome, linhas, erro }].
    */
   async function sincronizar(opts) {
